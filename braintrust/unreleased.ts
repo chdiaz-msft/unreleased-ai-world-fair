@@ -8,7 +8,7 @@
 import braintrust from "braintrust";
 
 const project = braintrust.projects.create({
-  name: "Unreleased",
+  name: "Unreleased-AI",
 });
 
 export const generateChangelog = project.prompts.create({
