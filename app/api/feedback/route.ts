@@ -1,13 +1,4 @@
-import { initLogger, currentLogger } from "braintrust";
 import { NextRequest, NextResponse } from "next/server";
-import { PROJECT_NAME } from "@/lib/constants";
-
-// Initialize logger for feedback logging
-const logger = initLogger({
-  projectName: PROJECT_NAME,
-  apiKey: process.env.BRAINTRUST_API_KEY,
-  asyncFlush: true,
-});
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,36 +20,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create a feedback event in Braintrust
-    // Since we don't have the original span ID, we'll create a new event
-    // that represents the user feedback
-    const feedbackId = await logger.log({
-      input: { 
-        repository_url: input,
-        feedback_request: "User feedback on changelog generation"
-      },
-      output: {
-        user_feedback: score === 1 ? 'helpful' : 'not_helpful',
-        generated_changelog: output
-      },
-      scores: {
-        user_feedback: score,
-      },
-      metadata: {
-        event_type: 'user_feedback',
-        feedback_type: 'thumbs_up_down',
-        timestamp: new Date().toISOString(),
-        user_action: score === 1 ? 'thumbs_up' : 'thumbs_down',
-      },
-    });
+    // Log feedback to console for debugging (optional)
+    console.log(`User feedback received: ${score === 1 ? 'positive' : 'negative'} for ${input}`);
 
-    console.log(`Logged user feedback with ID: ${feedbackId}`);
+    // Generate a simple feedback ID for response consistency
+    const feedbackId = `feedback-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     return NextResponse.json({ success: true, feedbackId });
   } catch (error) {
-    console.error('Error logging feedback:', error);
+    console.error('Error processing feedback:', error);
     return NextResponse.json(
-      { error: 'Failed to log feedback' },
+      { error: 'Failed to process feedback' },
       { status: 500 }
     );
   }
