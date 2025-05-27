@@ -1,10 +1,11 @@
-import { invoke, initLogger, wrapTraced } from "braintrust";
-import { BraintrustAdapter } from "@braintrust/vercel-ai-sdk";
+import { initLogger, wrapTraced, loadPrompt } from "braintrust";
+import { openai } from "@ai-sdk/openai";
+import { streamText } from "ai";
 import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 import { Octokit } from "@octokit/rest";
-import { PROJECT_NAME, PROMPT_SLUG } from "@/lib/constants";
+import { PROJECT_NAME, PROMPT_SLUG, DEFAULT_MODEL, DEFAULT_TEMPERATURE } from "@/lib/constants";
 
-const logger = initLogger({
+initLogger({
   projectName: PROJECT_NAME,
   apiKey: process.env.BRAINTRUST_API_KEY,
   // It is safe to set the "asyncFlush" flag to true in Vercel environments
@@ -24,27 +25,82 @@ type CommitsResponse = GetResponseTypeFromEndpointMethod<
 >;
 
 export async function POST(req: Request) {
-  const { prompt: url } = await req.json();
-  const changelog = await handleRequest(url);
-  return BraintrustAdapter.toAIStreamResponse(changelog);
+  try {
+    const body = await req.json();
+    
+    // useCompletion sends { prompt: "..." } by default
+    const url = body.prompt || body.url;
+    
+    if (!url) {
+      throw new Error('No URL provided in request');
+    }
+    
+    const response = await handleRequest(url);
+    
+    // Convert the AI SDK stream to a proper Response
+    return response.toDataStreamResponse();
+  } catch (error) {
+    console.error('Error in POST /generate:', error);
+    
+    // Return a proper error response
+    return new Response(
+      JSON.stringify({ 
+        error: 'An error occurred while generating the changelog',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }), 
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+  }
 }
 
 const handleRequest = wrapTraced(async function handleRequest(url: string) {
-  // Parse the URL to get the owner and repo name
-  const [owner, repo] = url.split("github.com/")[1].split("/");
-  
-  const { commits, since } = await getCommits(owner, repo);
+  try {
+    // Parse the URL to get the owner and repo name
+    const [owner, repo] = url.split("github.com/")[1].split("/");
+    
+    const { commits, since } = await getCommits(owner, repo);
 
-  return await invoke({
-    projectName: PROJECT_NAME,
-    slug: PROMPT_SLUG,
-    input: {
+    // Load the prompt from Braintrust
+    const prompt = await loadPrompt({
+      projectName: PROJECT_NAME,
+      slug: PROMPT_SLUG,
+      defaults: {
+        // Default model if not specified in the prompt
+        model: DEFAULT_MODEL,
+        temperature: DEFAULT_TEMPERATURE,
+      },
+    });
+
+    // Build the prompt with our input data
+    const builtPrompt = prompt.build({
       url,
       since,
       commits: commits.map(({ commit }) => `${commit.message}\n\n`),
-    },
-    stream: true,
-  });
+    });
+
+    // Extract properties from the built prompt
+    const modelName = (builtPrompt as any).model;
+    const temperature = (builtPrompt as any).temperature;
+    const maxTokens = (builtPrompt as any).max_tokens;
+    
+    // Use the AI SDK's streamText for streaming responses
+    const result = streamText({
+      model: openai(modelName),
+      messages: builtPrompt.messages as any, // Type assertion for compatibility
+      temperature,
+      ...(maxTokens && { maxTokens }),
+      // Enable telemetry for logging to Braintrust
+      experimental_telemetry: { isEnabled: true },
+    });
+    
+    return result;
+  } catch (error) {
+    console.error('Error in handleRequest:', error);
+    throw error; // Re-throw to be caught by the main POST handler
+  }
 });
 
 const getCommits = wrapTraced(async function getCommits(
