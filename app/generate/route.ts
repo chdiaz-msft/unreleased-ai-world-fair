@@ -236,10 +236,7 @@ export async function POST(req: Request) {
       rootSpan.log({
         input: {
           repository_url: url,
-          owner,
-          repo,
           since,
-          commits_count: commits.length,
           commits: commits.map(({ commit }) => ({
             message: commit.message,
             author: commit.author?.name,
