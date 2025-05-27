@@ -211,7 +211,9 @@ export async function POST(req: Request) {
       }, { name: 'load_prompt', type: 'function' });
 
       // Step 3: Generate changelog with OpenAI
-      const generatedChangelog = await rootSpan.traced(async (generateSpan) => {
+      let fullContent = '';
+      
+      const result = await rootSpan.traced(async (generateSpan) => {
         generateSpan.log({
           input: {
             model: prompt.model,
@@ -222,49 +224,53 @@ export async function POST(req: Request) {
           metadata: { operation: 'generate_changelog', openai_api_call: true },
         });
 
-        generateSpan.log({
-          output: {
-            status: 'streaming_initiated',
+        const result = streamText({
+          model: openai(prompt.model),
+          messages: prompt.messages as any,
+          temperature: prompt.temperature,
+          ...(prompt.maxTokens && { maxTokens: prompt.maxTokens }),
+          // Disable telemetry here since we're handling tracing manually
+          experimental_telemetry: { isEnabled: false },
+          onFinish: async (event) => {
+            // Capture the complete text when streaming finishes
+            fullContent = event.text;
+            
+            // Log the complete content
+            generateSpan.log({
+              output: {
+                generated_changelog: fullContent,
+              },
+              metadata: { operation: 'generate_changelog_complete' },
+            });
+
+            // Log the root span with complete input/output
+            rootSpan.log({
+              input: {
+                repository_url: url,
+                since,
+                commits: commits.map(({ commit }) => ({
+                  message: commit.message,
+                  author: commit.author?.name,
+                  date: commit.author?.date,
+                })),
+              },
+              output: {
+                generated_changelog: fullContent,
+              },
+              metadata: {
+                operation: 'generate_changelog',
+                repository: `${owner}/${repo}`,
+                commits_processed: commits.length,
+                since_date: since,
+              },
+            });
           },
-          metadata: { operation: 'generate_changelog_streaming' },
         });
 
-        return 'Streaming response initiated';
+        return result.toDataStreamResponse();
       }, { name: 'generate_changelog', type: 'llm' });
 
-      // Log the root span with complete input/output
-      rootSpan.log({
-        input: {
-          repository_url: url,
-          since,
-          commits: commits.map(({ commit }) => ({
-            message: commit.message,
-            author: commit.author?.name,
-            date: commit.author?.date,
-          })),
-        },
-        output: {
-          generated_changelog: generatedChangelog,
-        },
-        metadata: {
-          operation: 'generate_changelog',
-          repository: `${owner}/${repo}`,
-          commits_processed: commits.length,
-          since_date: since,
-        },
-      });
-
-      // Convert the AI SDK stream to a proper Response
-      const result = streamText({
-        model: openai(prompt.model),
-        messages: prompt.messages as any,
-        temperature: prompt.temperature,
-        ...(prompt.maxTokens && { maxTokens: prompt.maxTokens }),
-        // Disable telemetry here since we're handling tracing manually
-        experimental_telemetry: { isEnabled: false },
-      });
-
-      return result.toDataStreamResponse();
+      return result;
     } catch (error) {
       console.error('Error in POST /generate:', error);
       
