@@ -22,16 +22,54 @@ export default function Page() {
   });
 
   const [sampleRepoUrl, setSampleRepoUrl] = useState<string | null>(null);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<string | null>(null);
+  
   useEffect(() => {
     if (!sampleRepoUrl) return;
     handleSubmit();
     setSampleRepoUrl(null);
   }, [sampleRepoUrl, handleSubmit]);
 
+  // Reset feedback state when new completion starts
+  useEffect(() => {
+    if (isLoading) {
+      setFeedbackSubmitted(null);
+    }
+  }, [isLoading]);
+
   const onClickSampleRepo = (url: string) => {
     setInput(url);
     setSampleRepoUrl(url);
   };
+
+  const submitFeedback = async (score: number) => {
+    if (!completion || feedbackSubmitted || isLoading) return;
+    
+    try {
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          score,
+          input,
+          output: completion,
+        }),
+      });
+
+      if (response.ok) {
+        setFeedbackSubmitted(score === 1 ? 'positive' : 'negative');
+      } else {
+        console.error('Failed to submit feedback');
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+    }
+  };
+
+  // Only show feedback when streaming is complete (not loading) and we have completion text
+  const showFeedback = !isLoading && completion && completion.trim() !== "";
 
   return (
     <div className="flex flex-col gap-8 mb-8">
@@ -73,8 +111,58 @@ export default function Page() {
           {error.message}
         </div>
       ) : completion ? (
-        <div className="text-base prose prose-stone prose-sm prose-invert">
-          <Markdown>{completion}</Markdown>
+        <div className="space-y-4">
+          <div className="text-base prose prose-stone prose-sm prose-invert">
+            <Markdown>{completion}</Markdown>
+          </div>
+          
+          {/* Show streaming indicator while loading */}
+          {isLoading && (
+            <div className="flex items-center gap-2 text-sm text-stone-400">
+              <div className="animate-pulse">●</div>
+              <span>Generating changelog...</span>
+            </div>
+          )}
+          
+          {/* Feedback Section - Only show when streaming is complete */}
+          {showFeedback && (
+            <div className="flex items-center gap-4 pt-4 border-t border-stone-800">
+              <span className="text-sm text-stone-400">Was this helpful?</span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => submitFeedback(1)}
+                  disabled={!!feedbackSubmitted}
+                  className={`transition-colors ${
+                    feedbackSubmitted === 'positive' 
+                      ? 'bg-green-900 border-green-700 text-green-200' 
+                      : 'hover:bg-stone-800'
+                  }`}
+                >
+                  👍
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => submitFeedback(0)}
+                  disabled={!!feedbackSubmitted}
+                  className={`transition-colors ${
+                    feedbackSubmitted === 'negative' 
+                      ? 'bg-red-900 border-red-700 text-red-200' 
+                      : 'hover:bg-stone-800'
+                  }`}
+                >
+                  👎
+                </Button>
+              </div>
+              {feedbackSubmitted && (
+                <span className="text-sm text-stone-500">
+                  Thank you for your feedback!
+                </span>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">
