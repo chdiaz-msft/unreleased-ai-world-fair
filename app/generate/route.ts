@@ -228,9 +228,7 @@ export async function POST(req: Request) {
             
             // Log the complete content
             generateSpan.log({
-              output: {
-                generated_changelog: fullContent,
-              },
+              output: fullContent,
               metadata: { operation: 'generate_changelog_complete' },
             });
 
@@ -245,9 +243,7 @@ export async function POST(req: Request) {
                   date: commit.author?.date,
                 })),
               },
-              output: {
-                generated_changelog: fullContent,
-              },
+              output: fullContent,
               metadata: {
                 operation: 'generate_changelog',
                 repository: `${owner}/${repo}`,

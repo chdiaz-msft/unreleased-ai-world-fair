@@ -73,7 +73,7 @@ export const changelogScorer = (project as any).scorers.create({
 
   **Input Data**:
   - Original commit list: {{input.commits}}
-  - Generated changelog: {{output.generated_changelog}}
+  - Generated changelog: {{output}}
 
   **Evaluation Criteria**:
   Assess the changelog across these dimensions:
