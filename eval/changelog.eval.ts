@@ -1,14 +1,15 @@
-import { invoke, Eval, initDataset } from "braintrust";
+import { invoke, Eval, initDataset, initFunction } from "braintrust";
 import { sampleData } from "./sampleData";
 import { comprehensiveness } from "./comprehensiveness-scorer";
 import { z } from "zod";
 import { PROJECT_NAME, PROMPT_SLUG } from "@/lib/constants";
 
 interface Input {
-  url: string;
+  repository_url: string;
   since: string;
   commits: any[];
 }
+
 
 const comprehensivessScorer = ({
   input,
@@ -27,8 +28,8 @@ const comprehensivessScorer = ({
 };
 
 Eval(PROJECT_NAME, {
-  data: initDataset({project: PROJECT_NAME, dataset: 'eval dataset'}),
-  // data: () => [sampleData], // Uncomment to use sample data
+  // data: initDataset({project: PROJECT_NAME, dataset: 'eval dataset'}),
+  data: () => [sampleData], // Uncomment to use sample data
   task: async (input) =>
     await invoke({
       projectName: PROJECT_NAME,
@@ -36,5 +37,8 @@ Eval(PROJECT_NAME, {
       input,
       schema: z.string(),
     }),
-  scores: [comprehensivessScorer],
+  scores: [comprehensivessScorer, initFunction({
+    projectName: PROJECT_NAME,
+    slug: "changelog-quality-scorer",
+  })],
 });
