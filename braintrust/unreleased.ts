@@ -60,7 +60,7 @@ export const generateChangelog2 = project.prompts.create({
   ],
 });
 
-export const changelogScorer = (project as any).scorers.create({
+export const changelogScorer = project.scorers.create({
   name: "Changelog Quality Scorer",
   slug: "changelog-quality-scorer",
   description: "Evaluates the quality and completeness of generated changelogs",
