@@ -1,6 +1,6 @@
 export const sampleData = {
   input: {
-    url: "https://github.com/microsoft/typescript",
+    repository_url: "https://github.com/microsoft/typescript",
     since: "2024-06-20T18:18:26Z",
     commits: [
       {

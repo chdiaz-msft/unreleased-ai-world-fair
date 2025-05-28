@@ -11,11 +11,11 @@ const project = braintrust.projects.create({
   name: "Unreleased-AI",
 });
 
-export const generateChangelog = project.prompts.create({
-  name: "Generate changelog",
-  slug: "generate-changelog",
+export const generateChangelog1 = project.prompts.create({
+  name: "Generate changelog 1",
+  slug: "generate-changelog-1",
   description: "Generate a changelog from a list of unreleased commits",
-  model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+  model: "gpt-4o",
   messages: [
     {
       content:
@@ -27,9 +27,82 @@ export const generateChangelog = project.prompts.create({
   ],
 });
 
-export const myNewPrompt = project.prompts.create({
-  name: "My new prompt",
-  slug: "my-new-prompt",
+export const generateChangelog2 = project.prompts.create({
+  name: "Generate changelog 2",
+  slug: "generate-changelog-2",
+  description: "Generate a changelog from a list of unreleased commits",
   model: "gpt-4o",
-  messages: [{ content: "What is 1+1", role: "system" }],
+  messages: [
+    {
+      content:
+        "Create a developer-focused changelog from the commits below, covering changes from {{url}} since {{since}}.\n" +
+        "\n" +
+        "**Output Format:**\n" +
+        "1. Executive Summary (2-3 sentences highlighting the most significant changes)\n" +
+        "2. Categorized Changes:\n" +
+        "   - 🚨 Breaking Changes\n" +
+        "   - ✨ New Features\n" +
+        "   - 🔧 Improvements\n" +
+        "   - 🐛 Bug Fixes\n" +
+        "\n" +
+        "**Guidelines:**\n" +
+        "- Use bullet points with concise descriptions\n" +
+        "- Include PR numbers in parentheses when available\n" +
+        "- Prioritize user-facing and API changes\n" +
+        "- Skip routine maintenance, dependency updates, and merge commits\n" +
+        "- Highlight security-related changes\n" +
+        "\n" +
+        "**Source Data:**\n" +
+        "{{commits}}",
+
+      role: "user",
+    },
+  ],
+});
+
+export const changelogScorer = project.scorers.create({
+  name: "Changelog Quality Scorer",
+  slug: "changelog-quality-scorer",
+  description: "Evaluates the quality and completeness of generated changelogs",
+  messages: [
+    {
+      role: "system",
+      content: `You are evaluating the quality of a changelog generated from a list of git commits.
+
+  **Task**: Rate the changelog quality using one of four levels.
+
+  **Input Data**:
+  - Original commit list: {{input.commits}}
+  - Generated changelog: {{output}}
+
+  **Evaluation Criteria**:
+  Assess the changelog across these dimensions:
+  1. **Accuracy**: Correctly represents changes from commits
+  2. **Completeness**: Includes all significant changes, omits trivial ones
+  3. **Clarity**: Written in clear, user-friendly language
+  4. **Organization**: Properly categorized and structured
+
+  **Quality Levels**:
+
+  **Excellent**: Changelog perfectly captures all important changes with clear categorization, excellent readability, and no significant omissions or inaccuracies.
+
+  **Good**: Changelog captures most important changes with good organization and clarity, but may have minor issues with completeness or presentation.
+
+  **Fair**: Changelog covers the main changes but has noticeable issues with accuracy, organization, or clarity that impact usability.
+
+  **Poor**: Changelog has significant problems - missing important changes, poor organization, unclear language, or major inaccuracies.
+
+  **Output Format**:
+  Reasoning: [Detailed analysis of accuracy, completeness, clarity, and organization]
+  Choice: Excellent, Good, Fair, or Poor`
+    }
+  ],
+  model: "gpt-4o",
+  useCot: true,
+  choiceScores: {
+    Excellent: 1,
+    Good: 0.75,
+    Fair: 0.5,
+    Poor: 0.25,
+  }
 });
