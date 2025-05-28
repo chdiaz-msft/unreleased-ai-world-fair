@@ -1,18 +1,9 @@
-import { initLogger, wrapTraced, loadPrompt, currentLogger } from "braintrust";
+import { currentLogger, loadPrompt } from "@/lib/braintrust";
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import { GetResponseTypeFromEndpointMethod } from "@octokit/types";
 import { Octokit } from "@octokit/rest";
 import { PROJECT_NAME, PROMPT_SLUG, DEFAULT_MODEL, DEFAULT_TEMPERATURE } from "@/lib/constants";
-
-initLogger({
-  projectName: PROJECT_NAME,
-  apiKey: process.env.BRAINTRUST_API_KEY,
-  // It is safe to set the "asyncFlush" flag to true in Vercel environments
-  // because Braintrust calls waitUntil() automatically behind the scenes to
-  // ensure your logs are flushed properly.
-  asyncFlush: true,
-});
 
 // The GITHUB_ACCESS_TOKEN env var is optional. If you provide one,
 // you'll be able to run with higher rate limits.
@@ -267,7 +258,13 @@ export async function POST(req: Request) {
           },
         });
 
-        return result.toDataStreamResponse();
+        // Get the streaming response and add the span ID header
+        const streamResponse = result.toDataStreamResponse();
+        
+        // Add the span ID to the response headers for feedback correlation
+        streamResponse.headers.set('X-Braintrust-Span-Id', rootSpan.id);
+        
+        return streamResponse;
       }, { name: 'generate_changelog', type: 'llm' });
 
       return result;
