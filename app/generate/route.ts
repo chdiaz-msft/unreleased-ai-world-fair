@@ -1,3 +1,4 @@
+import { wrapAISDKModel } from "braintrust";
 import { currentLogger, loadPrompt } from "@/lib/braintrust";
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
@@ -216,11 +217,10 @@ export async function POST(req: Request) {
         });
 
         const result = streamText({
-          model: openai(prompt.model),
+          model: wrapAISDKModel(openai(prompt.model)),
           messages: prompt.messages as any,
           temperature: prompt.temperature,
           ...(prompt.maxTokens && { maxTokens: prompt.maxTokens }),
-          // Disable telemetry here since we're handling tracing manually
           experimental_telemetry: { isEnabled: false },
           onFinish: async (event) => {
             // Capture the complete text when streaming finishes
