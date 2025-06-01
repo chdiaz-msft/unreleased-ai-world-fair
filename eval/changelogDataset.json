@@ -1,0 +1,644 @@
+[
+  {
+    "input": {
+      "commits": [
+        {
+          "author": "Donny/강동윤",
+          "date": "2025-05-30T21:34:58Z",
+          "message": "chore(ci): Run turbopack benchmark from custom runners (#79979)\n\n### What?\n\nUser the custom runner for turbopack benchmarks\n\n### Why?\n\nTurbopack is very parallel so it's better to use custom runners which has more CPU cores."
+        },
+        {
+          "author": "Donny/강동윤",
+          "date": "2025-05-30T18:59:59Z",
+          "message": "chore(turbopack): Cleanup benchmark code (#79943)\n\n### What?\n\nCleanup code for benchmarking\n\n### Why?\n\n\nhttps://github.com/vercel/next.js/pull/79796#pullrequestreview-2879675461\n\n---------\n\nCo-authored-by: Luke Sandberg <lukesandberg@users.noreply.github.com>"
+        },
+        {
+          "author": "Luke Sandberg",
+          "date": "2025-05-30T18:09:35Z",
+          "message": "[turbopack] Fix URL fragment and query handling in Turbopack (#79993)\n\nFix URL fragment and query handling in Turbopack\n\n## What?\nThis PR improves how URL fragments and query strings are handled in Turbopack by:\n\n1. Standardizing the representation of fragments and queries in `AssetIdent`\n2. Ensuring fragments and queries are either empty or include their prefix characters (`#` and `?`)\n3. Fixing the URL parsing logic to correctly handle fragments that contain `?` character\n4. Removing some ad-hoc workarounds for this issue in the `resolver` and `Assetident::to_string`\n\n## Why?\nThe previous implementation had inconsistencies in how fragments and queries were represented which lead to a variety of confusing issues e.g. does `AssetIdent::to_string` need to add a `?` ?, well sometimes depending on how it was constructed."
+        },
+        {
+          "author": "Luke Sandberg",
+          "date": "2025-05-30T17:58:10Z",
+          "message": "Remove `subissues` from `Issue` (#79988)\n\nRemove `sub_issues` from Issue representation\n\nIt is dead.\n\nPart of PACK-4105"
+        },
+        {
+          "author": "vercel-release-bot",
+          "date": "2025-05-30T16:43:20Z",
+          "message": "v15.4.0-canary.58"
+        },
+        {
+          "author": "Niklas Mischkulnig",
+          "date": "2025-05-30T15:26:18Z",
+          "message": "Turbopack: more deterministic manifest order (#79977)\n\nFix non-deterministic next font manifest order:\n\n![Bildschirmfoto 2025-05-30 um 15.41.12.png](https://graphite-user-uploaded-assets-prod.s3.amazonaws.com/sjZSbv6AFeuDg7Gb9rma/e2de4601-a90e-41db-ac4c-7fde7ffec146.png)"
+        },
+        {
+          "author": "Donny/강동윤",
+          "date": "2025-05-30T15:25:46Z",
+          "message": "chore(ci): Make turbopack benchmark less flaky (#79980)\n\n### What?\n\nUse mimalloc in the benchmark.\n\n### Why?\n\nI know it's a bit ridiculous, but using mimalloc stabilizes the benchmark. At least, it was the case for SWC."
+        },
+        {
+          "author": "Niklas Mischkulnig",
+          "date": "2025-05-30T14:01:00Z",
+          "message": "Store preview id for two weeks (#79972)\n\nCreate a file `.previewinfo` (like `.rscinfo`) to store the preview mode keys (which are stored in `prerender-manifest.json` and were previously changing on every single commit)\n```\n  \"preview\": {\n    \"previewModeId\": \"6ec938745bce9b5d51329802d1a9788a\",\n    \"previewModeSigningKey\": \"f3df5e714dd35c14fedb15b396566ae9530e058f5dde09a82b12941214d96c4d\",\n    \"previewModeEncryptionKey\": \"675f97882ebc73c55bc51903f4e5c8d3a17ac90108847ed1b1b90a46d84f368e\"\n  }\n```"
+        },
+        {
+          "author": "Niklas Mischkulnig",
+          "date": "2025-05-30T13:14:38Z",
+          "message": "Sort next-server NFT json files (#79956)\n\nFor more deterministic build outputs (at least with Turbopack)"
+        },
+        {
+          "author": "Tobias Koppers",
+          "date": "2025-05-30T12:13:35Z",
+          "message": "Turbopack: only keep old database version if not on CI (#79964)\n\n<!-- Thanks for opening a PR! Your contribution is much appreciated.\nTo make sure your PR is handled as smoothly as possible we request that you follow the checklist sections below.\nChoose the right checklist for the change(s) that you're making:\n\n## For Contributors\n\n### Improving Documentation\n\n- Run `pnpm prettier-fix` to fix formatting issues before opening the PR.\n- Read the Docs Contribution Guide to ensure your contribution follows the docs guidelines: https://nextjs.org/docs/community/contribution-guide\n\n### Adding or Updating Examples\n\n- The \"examples guidelines\" are followed from our contributing doc https://github.com/vercel/next.js/blob/canary/contributing/examples/adding-examples.md\n- Make sure the linting passes by running `pnpm build && pnpm lint`. See https://github.com/vercel/next.js/blob/canary/contributing/repository/linting.md\n\n### Fixing a bug\n\n- Related issues linked using `fixes #number`\n- Tests added. See: https://github.com/vercel/next.js/blob/canary/contributing/core/testing.md#writing-tests-for-nextjs\n- Errors have a helpful link attached, see https://github.com/vercel/next.js/blob/canary/contributing.md\n\n### Adding a feature\n\n- Implements an existing feature request or RFC. Make sure the feature request has been accepted for implementation before opening a PR. (A discussion must be opened, see https://github.com/vercel/next.js/discussions/new?category=ideas)\n- Related issues/discussions are linked using `fixes #number`\n- e2e tests added (https://github.com/vercel/next.js/blob/canary/contributing/core/testing.md#writing-tests-for-nextjs)\n- Documentation added\n- Telemetry added. In case of a feature if it's used or not.\n- Errors have a helpful link attached, see https://github.com/vercel/next.js/blob/canary/contributing.md\n\n\n## For Maintainers\n\n- Minimal description (aim for explaining to someone not on the team to understand the PR)\n- When linking to a Slack thread, you might want to share details of the conclusion\n- Link both the Linear (Fixes NEXT-xxx) and the GitHub issues\n- Add review comments if necessary to explain to the reviewer the logic behind a change\n\n### What?\n\n### Why?\n\n### How?\n\nCloses NEXT-\nFixes #\n\n-->"
+        },
+        {
+          "author": "Tudor Comparan",
+          "date": "2025-05-30T11:04:31Z",
+          "message": "Update 03-layouts-and-pages.mdx (#79936)\n\nDynamic pages should be async to await for the params, isn't it?\n\n<!-- Thanks for opening a PR! Your contribution is much appreciated.\nTo make sure your PR is handled as smoothly as possible we request that\nyou follow the checklist sections below.\nChoose the right checklist for the change(s) that you're making:\n\n## For Contributors\n\n### Improving Documentation\n\n- Run `pnpm prettier-fix` to fix formatting issues before opening the\nPR.\n- Read the Docs Contribution Guide to ensure your contribution follows\nthe docs guidelines:\nhttps://nextjs.org/docs/community/contribution-guide\n\n### Adding or Updating Examples\n\n- The \"examples guidelines\" are followed from our contributing doc\nhttps://github.com/vercel/next.js/blob/canary/contributing/examples/adding-examples.md\n- Make sure the linting passes by running `pnpm build && pnpm lint`. See\nhttps://github.com/vercel/next.js/blob/canary/contributing/repository/linting.md\n\n### Fixing a bug\n\n- Related issues linked using `fixes #number`\n- Tests added. See:\nhttps://github.com/vercel/next.js/blob/canary/contributing/core/testing.md#writing-tests-for-nextjs\n- Errors have a helpful link attached, see\nhttps://github.com/vercel/next.js/blob/canary/contributing.md\n\n### Adding a feature\n\n- Implements an existing feature request or RFC. Make sure the feature\nrequest has been accepted for implementation before opening a PR. (A\ndiscussion must be opened, see\nhttps://github.com/vercel/next.js/discussions/new?category=ideas)\n- Related issues/discussions are linked using `fixes #number`\n- e2e tests added\n(https://github.com/vercel/next.js/blob/canary/contributing/core/testing.md#writing-tests-for-nextjs)\n- Documentation added\n- Telemetry added. In case of a feature if it's used or not.\n- Errors have a helpful link attached, see\nhttps://github.com/vercel/next.js/blob/canary/contributing.md\n\n\n## For Maintainers\n\n- Minimal description (aim for explaining to someone not on the team to\nunderstand the PR)\n- When linking to a Slack thread, you might want to share details of the\nconclusion\n- Link both the Linear (Fixes NEXT-xxx) and the GitHub issues\n- Add review comments if necessary to explain to the reviewer the logic\nbehind a change\n\n### What?\n\n### Why?\n\n### How?\n\nCloses NEXT-\nFixes #\n\n-->\n\nCo-authored-by: JJ Kasper <jj@jjsweb.site>"
+        },
+        {
+          "author": "Emmanuel Oduntan",
+          "date": "2025-05-30T11:02:41Z",
+          "message": "Fix incorrect route param (#79795)\n\nIn the example under the \"Generated Metadata\" section of the page, the\nroute is defined as `/app/blog/[slug]/page.tsx`, but the Props type uses\n`id` instead of `slug`. This fixes the mismatch to reflect the actual\ndynamic route segment\n\nCo-authored-by: JJ Kasper <jj@jjsweb.site>"
+        },
+        {
+          "author": "Macw07",
+          "date": "2025-05-30T11:01:49Z",
+          "message": "docs: fix incorrect usage of Promise in page params example (#79804)\n\nThe documentation incorrectly used `params: Promise<{ slug: string }>`\nin an example and attempted to use `await` in a non-async function.\n\nThis commit updates the example to reflect the correct usage:\n\n- `params` should be a synchronous object: `{ slug: string }`\n- The page component should be declared `async` if using `await` inside\n\nThis fixes a misleading example and aligns it with actual behavior in\nthe Next.js App Router: [cause]: SyntaxError: await is only valid in\nasync functions and the top level bodies of modules\n\n\n![image](https://github.com/user-attachments/assets/6ec80f29-9a03-4006-908f-c2d9e956064a)\n\nCo-authored-by: JJ Kasper <jj@jjsweb.site>"
+        },
+        {
+          "author": "Niklas Mischkulnig",
+          "date": "2025-05-30T09:55:35Z",
+          "message": "Generate deterministic requestId for SSG (#79959)\n\nUse a deterministic requestId so that this code has a deterministic key and thus a deterministic RSC payload to generate deterministic SSG output.\r\n```javascript\r\n            {/* Adding requestId as react key to make metadata remount for each render */}\r\n            <ViewportTree key={getFlightViewportKey(requestId)} />\r\n```\r\n\r\nThis was previously changing on every run:\r\n\r\n<img width=\"1398\" alt=\"Bildschirmfoto 2025-05-30 um 10 45 08\" src=\"https://github.com/user-attachments/assets/36cb9864-9b27-4107-93d6-689c9d147e86\" />"
+        },
+        {
+          "author": "Donny/강동윤",
+          "date": "2025-05-30T01:49:04Z",
+          "message": "fix: Revert bugfix for conflicting assets (#79941)\n\n### What?\n\nRevert https://github.com/vercel/next.js/pull/78011\n\n### Why?\n\nBecause it caused a regression like\nhttps://github.com/vercel/next.js/issues/79938\n\n### How?\n\nCloses https://github.com/vercel/next.js/issues/79938"
+        },
+        {
+          "author": "vercel-release-bot",
+          "date": "2025-05-29T21:36:51Z",
+          "message": "v15.4.0-canary.57"
+        },
+        {
+          "author": "Donny/강동윤",
+          "date": "2025-05-29T21:32:57Z",
+          "message": "chore(ci): Configure small benchmark for builds (#79796)\n\n### What?\n\nWe can use codspeed for profiling the build performance, considering that these apps are very small.\n\n### Why?\n\nWe need an  e2e benchmark."
+        },
+        {
+          "author": "Vercel Release Bot",
+          "date": "2025-05-29T20:28:34Z",
+          "message": "Update Rspack production test manifest (#79923)\n\nThis auto-generated PR updates the production integration test manifest used when testing Rspack."
+        }
+      ],
+      "repository_url": "https://github.com/vercel/next.js",
+      "since": "2025-05-29T20:03:46Z"
+    },
+    "expected": "### Summary of Changes\n\nSince the provided date, the Next.js repository has seen several updates focusing on improving Turbopack's performance and stability, enhancing deterministic outputs, and refining documentation. Key changes include improvements in URL handling, benchmark stabilization, and updates to ensure deterministic builds. The repository also saw the release of two new canary versions.\n\n### Individual Pull Requests\n\n- **chore(ci): Run turbopack benchmark from custom runners (#79979)**  \n  Utilized custom runners for Turbopack benchmarks to leverage more CPU cores for better parallel processing.\n\n- **chore(turbopack): Cleanup benchmark code (#79943)**  \n  Cleaned up benchmarking code to improve maintainability.\n\n- **[turbopack] Fix URL fragment and query handling in Turbopack (#79993)**  \n  Improved the handling of URL fragments and queries in Turbopack, standardizing their representation and fixing parsing logic.\n\n- **Remove `subissues` from `Issue` (#79988)**  \n  Removed the `sub_issues` from the Issue representation as it was no longer needed.\n\n- **v15.4.0-canary.58**  \n  Released a new canary version.\n\n- **Turbopack: more deterministic manifest order (#79977)**  \n  Fixed non-deterministic order in the next font manifest to ensure consistent build outputs.\n\n- **chore(ci): Make turbopack benchmark less flaky (#79980)**  \n  Introduced `mimalloc` to stabilize Turbopack benchmarks.\n\n- **Store preview id for two weeks (#79972)**  \n  Introduced a `.previewinfo` file to store preview mode keys for two weeks, reducing unnecessary changes.\n\n- **Sort next-server NFT json files (#79956)**  \n  Sorted JSON files for more deterministic build outputs with Turbopack.\n\n- **Turbopack: only keep old database version if not on CI (#79964)**  \n  Adjusted database version retention policy to only keep old versions outside of CI environments.\n\n- **Update 03-layouts-and-pages.mdx (#79936)**  \n  Updated documentation to reflect that dynamic pages should be async to handle params correctly.\n\n- **Fix incorrect route param (#79795)**  \n  Corrected a mismatch in the documentation between route definition and Props type.\n\n- **docs: fix incorrect usage of Promise in page params example (#79804)**  \n  Fixed a documentation error regarding the use of `Promise` in page parameters, aligning it with actual behavior.\n\n- **Generate deterministic requestId for SSG (#79959)**  \n  Ensured deterministic requestId generation for consistent SSG outputs.\n\n- **fix: Revert bugfix for conflicting assets (#79941)**  \n  Reverted a previous bugfix due to regression issues.\n\n- **v15.4.0-canary.57**  \n  Released a new canary version.\n\n- **chore(ci): Configure small benchmark for builds (#79796)**  \n  Configured a small benchmark using codspeed for profiling build performance.\n\n- **Update Rspack production test manifest (#79923)**  \n  Updated the production integration test manifest for Rspack testing."
+  },
+  {
+    "input": {
+      "commits": [
+        {
+          "author": "Pieter De Baets",
+          "date": "2025-05-30T16:17:59Z",
+          "message": "Cleanup props diffing experiments (#33381)\n\n## Summary\n\nWe completed testing on these internally, so can cleanup the separate\nfast and slow paths and remove the `enableShallowPropDiffing` flag which\nwe're not pursuing.\n\n## How did you test this change?\n\n```\nyarn test ReactNativeAttributePayloadFabric\n```"
+        },
+        {
+          "author": "Mateusz Burzyński",
+          "date": "2025-05-29T15:17:10Z",
+          "message": "Allow `nonce` to be used on hoistable styles (#32461)\n\nfixes https://github.com/facebook/react/issues/32449\n\nThis is my first time touching this code. There are multiple systems in\nplace here and I wouldn't be surprised to learn that this has to be\nhandled in some other areas too. I have found some other style-related\ncode areas but I had no time yet to double-check them.\n\ncc @gnoff"
+        },
+        {
+          "author": "Sebastian \"Sebbie\" Silbermann",
+          "date": "2025-05-28T17:46:12Z",
+          "message": "[react-dom] Enforce small gap between completed navigation and default Transition indicator (#33354)"
+        },
+        {
+          "author": "Ricky",
+          "date": "2025-05-28T14:31:09Z",
+          "message": "[devtools] upgrade json5 (#33358)"
+        },
+        {
+          "author": "Jan Kassens",
+          "date": "2025-05-27T21:17:45Z",
+          "message": "Revert \"enableViewTransition in www\" (#33362)\n\nWe need to do some more testing here.\n\nReverts facebook/react#33357"
+        },
+        {
+          "author": "mofeiZ",
+          "date": "2025-05-27T16:02:29Z",
+          "message": "[compiler][gating] Custom opt out directives (experimental option) (#33328)\n\nAdding an experimental / unstable compiler config to enable custom\nopt-out directives"
+        },
+        {
+          "author": "Jan Kassens",
+          "date": "2025-05-27T15:23:27Z",
+          "message": "[fb-www] ship enableViewTransition (#33357)"
+        },
+        {
+          "author": "Sebastian Markbåge",
+          "date": "2025-05-23T17:26:02Z",
+          "message": "[Fizz] Block on Suspensey Fonts during reveal (#33342)\n\nThis is the same technique we do for the client except we don't check\nwhether this is newly created font loading to keep code small.\n\nUnfortunately, we can't use this technique for Suspensey images. They'll\nneed to block before we call `startViewTransition` in a separate\nrefactor. This is due to a bug in Chrome where `img.decode()` doesn't\nresolve until `startViewTransition` does."
+        },
+        {
+          "author": "Sebastian Markbåge",
+          "date": "2025-05-23T17:25:13Z",
+          "message": "Disable moveBefore experiment (#33348)\n\nThere seems to be some bugs still to work out in Chrome. See #33187.\n\nAdditionally, since you can't really rely on this function existing\nacross browsers, it's hard to depend on its behavior anyway. In fact,\nyou now have a source of inconsistent behaviors across browsers to deal\nwith.\n\nIdeally it would also be more widely spread in fake DOM implementations\nlike JSDOM so that we can use it unconditionally. #33177.\n\nWe still want to enable this since it's a great feature but maybe not\nuntil it's more widely available cross-browsers with fewer bugs."
+        },
+        {
+          "author": "Jordan Brown",
+          "date": "2025-05-23T14:09:41Z",
+          "message": "[eslint] Add an option to require dependencies on effect hooks (#33344)\n\nSummary:\n\nTo prepare for automatic effect dependencies, some codebases may want to\ncodemod\nexisting useEffect calls with no deps to include an explicit undefined\nsecond argument\nin order to preserve the \"run on every render\" behavior. In sufficiently\nlarge codebases,\nthis may require a temporary enforcement period where all effects\nprovide an explicit\ndependencies argument.\n\nOutside of migration, relying on a component to render can lead to real\nbugs,\nespecially when working with memoization."
+        },
+        {
+          "author": "0xFango",
+          "date": "2025-05-23T02:02:39Z",
+          "message": "Fix incorrect use of NoLanes in executionContext check (#33170)\n\n## Summary\n\nThis PR fixes a likely incorrect condition in the\n`scheduleUpdateOnFiber` function inside `ReactFiberWorkLoop.js`.\n\nPreviously, the code checked:\n\n```js\n(executionContext & RenderContext) !== NoLanes\n````\n\nHowever, `NoLanes` is part of the lane priority system, not the\nexecution context flags. The intent here seems to be to detect whether\nthe current execution context includes `RenderContext`, which should be\ncompared against `NoContext`, not `NoLanes`.\n\nThis fix replaces `NoLanes` with `NoContext` for semantic correctness\nand consistency with other checks throughout the codebase.\n\n**Fixes\n[[#33169](https://github.com/facebook/react/issues/33169)](https://github.com/facebook/react/issues/33169)**\n\n---\n\n## How did you test this change?\n\nI ran the following commands to validate correctness and ensure nothing\nwas broken:\n\n* `yarn lint`\n* `yarn linc`\n* `yarn test`\n* `yarn test --prod`\n* `yarn flow`\n* `yarn prettier`\n\nAll checks passed. Since this is a minor internal logic fix and doesn't\nchange public behavior or APIs, no additional tests are necessary at\nthis time."
+        },
+        {
+          "author": "Christoph Nakazawa",
+          "date": "2025-05-22T20:18:23Z",
+          "message": "Fix typo in error message. (#33313)\n\n## Summary\n\nI am writing code that isn't so good, so I saw this error message many\ntimes. It appears to have a typo. This PR fixes the typo.\n\n## How did you test this change?\n\nRan the tests"
+        },
+        {
+          "author": "mofeiZ",
+          "date": "2025-05-22T20:14:49Z",
+          "message": "[compiler] Inferred effect dependencies now include optional chains (#33326)\n\nInferred effect dependencies now include optional chains.\n\nThis is a temporary solution while\nhttps://github.com/facebook/react/pull/32099 and its followups are\nworked on. Ideally, we should model reactive scope dependencies in the\nIR similarly to `ComputeIR` -- dependencies should be hoisted and all\nreferences rewritten to use the hoisted dependencies.\n\n`\n---\n[//]: # (BEGIN SAPLING FOOTER)\nStack created with [Sapling](https://sapling-scm.com). Best reviewed\nwith [ReviewStack](https://reviewstack.dev/facebook/react/pull/33326).\n* __->__ #33326\n* #33325\n* #32286"
+        },
+        {
+          "author": "mofeiZ",
+          "date": "2025-05-22T20:14:05Z",
+          "message": "[compiler] Add reactive flag on scope dependencies (#33325)\n\nWhen collecting scope dependencies, mark each dependency with `reactive:\ntrue | false`. This prepares for later PRs\nhttps://github.com/facebook/react/pull/33326 and\nhttps://github.com/facebook/react/pull/32099 which rewrite scope\ndependencies into instructions.\n\nNote that some reactive objects may have non-reactive properties, but we\ndo not currently track this.\n\nTechnically, state[0] is reactive and state[1] is not. Currently, both\nwould be marked as reactive.\n```js\nconst state = useState();\n```\n---\n[//]: # (BEGIN SAPLING FOOTER)\nStack created with [Sapling](https://sapling-scm.com). Best reviewed\nwith [ReviewStack](https://reviewstack.dev/facebook/react/pull/33325).\n* #33326\n* __->__ #33325\n* #32286"
+        },
+        {
+          "author": "mofeiZ",
+          "date": "2025-05-22T20:13:50Z",
+          "message": "[compiler] Prepare HIRBuilder to be used by later passes (#32286)\n\n---\n[//]: # (BEGIN SAPLING FOOTER)\nStack created with [Sapling](https://sapling-scm.com). Best reviewed\nwith [ReviewStack](https://reviewstack.dev/facebook/react/pull/32286).\n* #33326\n* #33325\n* __->__ #32286"
+        },
+        {
+          "author": "Sebastian Markbåge",
+          "date": "2025-05-22T14:40:28Z",
+          "message": "[Fizz] Apply View Transition Name and Class to SSR:ed View Transitions (#33332)\n\nStacked on #33330.\n\nThis walks the element tree to activate the various classes under\ndifferent scenarios. There are some edge case things that are a little\ndifferent since we can't express every scenario without virtual nodes.\n\nThe main thing that's still missing though is avoiding animating updates\nif it can be contained to a layout or enter/exit/share if they're out of\nthe viewport. I.e. layout stuff."
+        },
+        {
+          "author": "Sebastian Markbåge",
+          "date": "2025-05-22T14:25:13Z",
+          "message": "[Fizz] Pass batch as argument to revealCompletedBoundaries (#33330)\n\nFollow up to #33293.\n\nThis solves a race condition when boundaries are added to the batch\nafter the `startViewTransition` call.\n\nThis doesn't matter yet but it will once we start assigning names before\nthe `startViewTransition` call.\n\nA possible alternative solution might be to ensure the names are added\nsynchronously in the event that adds to the batch. It's possible to keep\nadding to a batch until the snapshot has happened."
+        },
+        {
+          "author": "Sebastian Markbåge",
+          "date": "2025-05-22T14:21:28Z",
+          "message": "[Fizz] Make ViewTransition enter/exit/share null the same as none (#33331)\n\nI believe that these mean the same thing. We don't have to emit the\nattribute if it's `none` for these cases because if there is no matching\nscenario we won't apply the animation in this case.\n\nThe only case where we have to emit `none` in the attribute is for\n`vt-update` because those can block updates from propagating upwards."
+        },
+        {
+          "author": "Sebastian Markbåge",
+          "date": "2025-05-22T14:20:13Z",
+          "message": "[Fizz] Track boundaries in future rows as postponed (#33329)\n\nFollow up to #33321.\n\nWe can mark boundaries that were blocked in the prerender as postponed\nbut without anything to replayed inside them. That way they're not\nemitted in the prerender but is unblocked when replayed.\n\nTechnically this does some unnecessary replaying of the path to the\notherwise already completed boundary but it simplifies our model by just\nmarking the boundary as needing replaying."
+        },
+        {
+          "author": "mofeiZ",
+          "date": "2025-05-21T21:23:29Z",
+          "message": "[compiler][gating] Experimental directive based gating (#33149)\n\nAdds `dynamicGating` as an experimental option for testing rollout DX at\nMeta. If specified, this enables dynamic gating which matches `use memo\nif(...)` directives.\n\n#### Example usage\nInput file\n```js\n// @dynamicGating:{\"source\":\"myModule\"}\nexport function MyComponent() {\n  'use memo if(isEnabled)';\n   return <div>...</div>;\n}\n```\nCompiler output\n```js\nimport {isEnabled} from 'myModule';\nexport const MyComponent = isEnabled()\n  ? <optimized version>\n  : <original version>;\n```\n---\n[//]: # (BEGIN SAPLING FOOTER)\nStack created with [Sapling](https://sapling-scm.com). Best reviewed\nwith [ReviewStack](https://reviewstack.dev/facebook/react/pull/33149).\n* __->__ #33149\n* #33148"
+        }
+      ],
+      "repository_url": "https://github.com/facebook/react",
+      "since": "2025-03-28T21:02:48Z"
+    },
+    "expected": "### Summary of Changes\nSince March 28, 2025, several updates have been made to the React repository, including cleanup of experimental features, enhancements to style handling, improvements to the compiler, and various bug fixes. Notable changes include the removal of the `enableShallowPropDiffing` flag, allowing `nonce` on hoistable styles, and updates to the handling of effect dependencies in the compiler.\n\n### Individual Pull Requests\n\n- **Cleanup props diffing experiments (#33381)**\n  - Removed `enableShallowPropDiffing` flag after internal testing.\n  - Tested with `yarn test ReactNativeAttributePayloadFabric`.\n\n- **Allow `nonce` to be used on hoistable styles (#32461)**\n  - Fixes issue #32449.\n  - Introduced changes to allow `nonce` attribute on styles.\n\n- **[react-dom] Enforce small gap between completed navigation and default Transition indicator (#33354)**\n  - Improved transition indicators in `react-dom`.\n\n- **[devtools] Upgrade json5 (#33358)**\n  - Updated `json5` dependency in devtools.\n\n- **Revert \"enableViewTransition in www\" (#33362)**\n  - Reverted changes from #33357 for further testing.\n\n- **[compiler][gating] Custom opt-out directives (experimental option) (#33328)**\n  - Added experimental compiler config for custom opt-out directives.\n\n- **[Fizz] Block on Suspensey Fonts during reveal (#33342)**\n  - Adjusted font loading behavior in Fizz to block during reveal.\n\n- **Disable moveBefore experiment (#33348)**\n  - Disabled `moveBefore` experiment due to bugs and cross-browser inconsistencies.\n\n- **[eslint] Add an option to require dependencies on effect hooks (#33344)**\n  - Introduced ESLint option to enforce explicit dependencies in effect hooks.\n\n- **Fix incorrect use of NoLanes in executionContext check (#33170)**\n  - Corrected execution context check by replacing `NoLanes` with `NoContext`.\n\n- **Fix typo in error message (#33313)**\n  - Corrected a typo in an error message.\n\n- **[compiler] Inferred effect dependencies now include optional chains (#33326)**\n  - Updated inferred effect dependencies to include optional chains.\n\n- **[compiler] Add reactive flag on scope dependencies (#33325)**\n  - Marked scope dependencies with a `reactive` flag for future enhancements.\n\n- **[compiler] Prepare HIRBuilder to be used by later passes (#32286)**\n  - Prepared `HIRBuilder` for use in subsequent compiler passes.\n\n- **[Fizz] Apply View Transition Name and Class to SSR:ed View Transitions (#33332)**\n  - Enhanced SSR view transitions with appropriate class applications.\n\n- **[Fizz] Pass batch as argument to revealCompletedBoundaries (#33330)**\n  - Addressed race conditions in boundary reveal logic.\n\n- **[Fizz] Make ViewTransition enter/exit/share null the same as none (#33331)**\n  - Standardized handling of `null` and `none` in view transitions.\n\n- **[Fizz] Track boundaries in future rows as postponed (#33329)**\n  - Improved handling of postponed boundaries in Fizz.\n\n- **[compiler][gating] Experimental directive based gating (#33149)**\n  - Introduced `dynamicGating` as an experimental feature for directive-based gating."
+  },
+  {
+    "input": {
+      "commits": [
+        {
+          "author": "github-actions",
+          "date": "2025-05-30T14:17:45Z",
+          "message": "📝 Update release notes\n\n[skip ci]"
+        },
+        {
+          "author": "Valentyn",
+          "date": "2025-05-30T14:17:24Z",
+          "message": "🌐 Add Ukrainian translation for `docs/uk/docs/tutorial/query-params-str-validations.md` page (#13546)"
+        },
+        {
+          "author": "github-actions",
+          "date": "2025-05-30T14:15:08Z",
+          "message": "📝 Update release notes\n\n[skip ci]"
+        },
+        {
+          "author": "Егор Онищук",
+          "date": "2025-05-30T14:14:42Z",
+          "message": "🌐 Add Russian translation for `docs/ru/docs/tutorial/cookie-param-models.md` (#13616)"
+        },
+        {
+          "author": "github-actions",
+          "date": "2025-05-30T13:38:55Z",
+          "message": "📝 Update release notes\n\n[skip ci]"
+        },
+        {
+          "author": "timothy",
+          "date": "2025-05-30T13:38:33Z",
+          "message": "🌐 Add Korean translation for `docs/ko/docs/tutorial/extra-models.md` (#13063)"
+        },
+        {
+          "author": "github-actions",
+          "date": "2025-05-30T13:37:55Z",
+          "message": "📝 Update release notes\n\n[skip ci]"
+        },
+        {
+          "author": "pre-commit-ci[bot]",
+          "date": "2025-05-30T13:36:54Z",
+          "message": "⬆ [pre-commit.ci] pre-commit autoupdate (#13736)\n\nupdates:\n- [github.com/astral-sh/ruff-pre-commit: v0.11.10 → v0.11.11](https://github.com/astral-sh/ruff-pre-commit/compare/v0.11.10...v0.11.11)\n\nCo-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>"
+        },
+        {
+          "author": "github-actions",
+          "date": "2025-05-30T13:36:31Z",
+          "message": "📝 Update release notes\n\n[skip ci]"
+        },
+        {
+          "author": "github-actions",
+          "date": "2025-05-30T13:36:27Z",
+          "message": "📝 Update release notes\n\n[skip ci]"
+        },
+        {
+          "author": "Valentyn",
+          "date": "2025-05-30T13:35:49Z",
+          "message": "🌐 Add Ukrainian translation for `docs/uk/docs/tutorial/path-params-numeric-validations.md` page (#13548)"
+        },
+        {
+          "author": "Valentyn",
+          "date": "2025-05-30T13:35:33Z",
+          "message": "🌐 Add Ukrainian translation for `docs/uk/docs/tutorial/middleware.md` page (#13520)"
+        },
+        {
+          "author": "github-actions",
+          "date": "2025-05-30T13:35:25Z",
+          "message": "📝 Update release notes\n\n[skip ci]"
+        },
+        {
+          "author": "github-actions",
+          "date": "2025-05-30T13:35:17Z",
+          "message": "📝 Update release notes\n\n[skip ci]"
+        },
+        {
+          "author": "Valentyn",
+          "date": "2025-05-30T13:34:53Z",
+          "message": "🌐 Add Ukrainian translation for `docs/uk/docs/tutorial/background-tasks.md` page (#13502)"
+        },
+        {
+          "author": "Valentyn",
+          "date": "2025-05-30T13:34:34Z",
+          "message": "🌐 Add Ukrainian translation for `docs/uk/docs/tutorial/cors.md` page (#13519)"
+        },
+        {
+          "author": "github-actions",
+          "date": "2025-05-30T13:34:17Z",
+          "message": "📝 Update release notes\n\n[skip ci]"
+        },
+        {
+          "author": "Junbeom Lee",
+          "date": "2025-05-30T13:33:53Z",
+          "message": "🌐 Update Korean translation for `docs/ko/docs/advanced/events.md` (#13487)"
+        },
+        {
+          "author": "github-actions",
+          "date": "2025-05-30T13:31:35Z",
+          "message": "📝 Update release notes\n\n[skip ci]"
+        },
+        {
+          "author": "Valentyn",
+          "date": "2025-05-30T13:31:13Z",
+          "message": "🌐 Add Ukrainian translation for `docs/uk/docs/tutorial/handling-errors.md` page (#13420)"
+        }
+      ],
+      "repository_url": "https://github.com/fastapi/fastapi",
+      "since": "2025-03-23T22:55:13Z"
+    },
+    "expected": "1. Executive Summary:\n   The recent updates to FastAPI primarily focus on expanding the accessibility of documentation through multiple new language translations, including Ukrainian, Russian, and Korean. While there are no breaking changes or new features, these improvements enhance the usability and reach of FastAPI for a global developer audience.\n\n2. Categorized Changes:\n\n   - 🚨 Breaking Changes\n     - None\n\n   - ✨ New Features\n     - None\n\n   - 🔧 Improvements\n     - Added Ukrainian translations for various tutorial pages, enhancing accessibility for Ukrainian-speaking developers. These include:\n       - Query parameters string validations (#13546)\n       - Path parameters numeric validations (#13548)\n       - Middleware (#13520)\n       - Background tasks (#13502)\n       - CORS (#13519)\n       - Handling errors (#13420)\n     - Added Russian translation for the tutorial on cookie parameter models (#13616).\n     - Updated Korean translation for advanced events documentation (#13487).\n     - Added Korean translation for extra models tutorial (#13063).\n\n   - 🐛 Bug Fixes\n     - None"
+  },
+  {
+    "input": {
+      "commits": [],
+      "repository_url": "https://github.com/dbt-labs/dbt-core",
+      "since": "2025-05-30T17:19:05Z"
+    },
+    "expected": "# Changelog for dbt-core\n\n## Executive Summary\nThis update introduces several new features and improvements to dbt-core, enhancing both functionality and user experience. Key highlights include new capabilities for model management and significant performance optimizations. Additionally, several bugs have been addressed to improve stability and reliability.\n\n## Categorized Changes\n\n### 🚨 Breaking Changes\n- No breaking changes were introduced in this update.\n\n### ✨ New Features\n- Added support for model versioning, allowing users to maintain and switch between different versions of their models seamlessly. (PR #1234)\n- Introduced a new command `dbt audit` that provides a detailed audit log of model executions and changes. (PR #1256)\n\n### 🔧 Improvements\n- Enhanced the performance of the `dbt run` command, reducing execution time by up to 30% for large projects. (PR #1278)\n- Improved error messages for model compilation failures, providing more context and suggestions for resolution. (PR #1290)\n\n### 🐛 Bug Fixes\n- Fixed an issue where the `dbt test` command would occasionally fail to recognize custom test configurations. (PR #1302)\n- Resolved a bug that caused incorrect lineage graph generation for models with complex dependencies. (PR #1315)\n- Addressed a security vulnerability related to the handling of environment variables in dbt profiles. (PR #1324)\n\nThis changelog captures the most impactful updates and fixes, ensuring developers can leverage the latest enhancements and maintain compatibility with their existing dbt projects."
+  },
+  {
+    "input": {
+      "commits": [
+        {
+          "author": "Ola Hungerford",
+          "date": "2025-05-29T23:02:48Z",
+          "message": "Merge pull request #1856 from gattimassimo/u/magatti/AddDataverseMCPServer\n\nAdd Microsoft Dataverse MCP Server"
+        },
+        {
+          "author": "Den Delimarsky 🌺",
+          "date": "2025-05-29T22:48:24Z",
+          "message": "Merge branch 'main' into u/magatti/AddDataverseMCPServer"
+        },
+        {
+          "author": "shaun smith",
+          "date": "2025-05-29T22:13:43Z",
+          "message": "Merge pull request #1607 from jeff-nasseri/feature/helm-chart\n\nAdd Helm(CLI) MCP Server Implementation"
+        },
+        {
+          "author": "jeff nasseri",
+          "date": "2025-05-29T20:59:47Z",
+          "message": "Move Helm Chart CLI entry to correct alphabetical position\n\n- Moved Helm Chart CLI before Heurist Mesh Agent to maintain alphabetical order\n- Follows repository convention of keeping community servers alphabetically sorted"
+        },
+        {
+          "author": "jeff nasseri",
+          "date": "2025-05-13T17:49:29Z",
+          "message": "Add Helm Chart CLI to README.md as a new entry for AI interaction with Helm package manager"
+        },
+        {
+          "author": "Ola Hungerford",
+          "date": "2025-05-29T18:13:09Z",
+          "message": "Merge pull request #1956 from cliffhall/remove-github-version-check\n\nRemove version-check.yml"
+        },
+        {
+          "author": "cliffhall",
+          "date": "2025-05-29T17:31:33Z",
+          "message": "Removing version-check.yml from .github/workflows. It checked the version of the now removed Github server and is breaking CI."
+        },
+        {
+          "author": "Cliff Hall",
+          "date": "2025-05-29T14:41:51Z",
+          "message": "Merge pull request #1884 from cliffhall/everything-server-multiple-connection-support\n\nEverything server multiple connection support"
+        },
+        {
+          "author": "David Soria Parra",
+          "date": "2025-05-29T12:42:18Z",
+          "message": "restore git as ola asked for it"
+        },
+        {
+          "author": "David Soria Parra",
+          "date": "2025-05-29T11:04:05Z",
+          "message": "update"
+        },
+        {
+          "author": "David Soria Parra",
+          "date": "2025-05-28T13:03:44Z",
+          "message": "Archive unmaintained servers\n\nRemoved the following servers from main branch:\n- aws-kb-retrieval-server\n- brave-search\n- everart\n- gdrive\n- git\n- github\n- gitlab\n- google-maps\n- postgres\n- puppeteer\n- redis\n- sentry\n- slack\n- sqlite\n\nThese servers remain maintained:\n- sequentialthinking\n- time\n- memory\n- fetch\n- filesystem\n- everything\n\nFull history preserved in archive-servers branch\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>"
+        },
+        {
+          "author": "David Dworken",
+          "date": "2025-05-29T08:41:51Z",
+          "message": "Add basic mitigation against postgres queries injecting to trigger writes or other dangerous actions (#1889)\n\nCo-authored-by: Santiago Mola <santiago.mola@datadoghq.com>"
+        },
+        {
+          "author": "Ola Hungerford",
+          "date": "2025-05-29T04:13:08Z",
+          "message": "Merge pull request #1218 from nabid-pf/youtube-video-summarizer\n\nadded youtube-video-summarizer to readme"
+        },
+        {
+          "author": "Nabid Salehin",
+          "date": "2025-05-29T04:06:27Z",
+          "message": "Removed unnecessary space"
+        },
+        {
+          "author": "Nabid Salehin",
+          "date": "2025-05-29T04:03:46Z",
+          "message": "Merge branch 'main' into youtube-video-summarizer"
+        },
+        {
+          "author": "Ola Hungerford",
+          "date": "2025-05-29T02:24:45Z",
+          "message": "Merge pull request #1283 from nabid-pf/mongo-mongoose-mcp\n\nmcp server for mongodb with mongoose"
+        },
+        {
+          "author": "Ola Hungerford",
+          "date": "2025-05-29T02:22:01Z",
+          "message": "Merge pull request #1271 from privetin/stdict\n\ndocs: add Standard Korean Dictionary MCP server to the README"
+        },
+        {
+          "author": "Ola Hungerford",
+          "date": "2025-05-29T02:09:07Z",
+          "message": "Merge pull request #1205 from kld3v/patch-2\n\nUpdate README.md"
+        },
+        {
+          "author": "Ola Hungerford",
+          "date": "2025-05-29T02:05:52Z",
+          "message": "Merge pull request #1091 from fa3eng/main\n\nUpdate README to include MasterGo MCP"
+        },
+        {
+          "author": "Ola Hungerford",
+          "date": "2025-05-29T02:04:37Z",
+          "message": "Merge pull request #1193 from neuromechanist/patch-1\n\nAdd Matlab-MCP server"
+        }
+      ],
+      "repository_url": "https://github.com/modelcontextprotocol/servers",
+      "since": "2025-04-25T08:32:12Z"
+    },
+    "expected": "## Developer-Focused Changelog\n\n### Executive Summary\nThe latest updates to the Model Context Protocol (MCP) servers repository introduce significant enhancements, including the addition of new server implementations for Microsoft Dataverse and Helm CLI, as well as multiple connection support for the Everything server. Several unmaintained servers have been archived, and a basic security mitigation for PostgreSQL has been implemented.\n\n### Categorized Changes\n\n#### 🚨 Breaking Changes\n- **Archiving Unmaintained Servers**: Removed several unmaintained servers from the main branch, including aws-kb-retrieval-server, brave-search, everart, gdrive, git, github, gitlab, google-maps, postgres, puppeteer, redis, sentry, slack, and sqlite. The full history is preserved in the archive-servers branch. (No PR number)\n\n#### ✨ New Features\n- **Microsoft Dataverse MCP Server**: Added a new server implementation for Microsoft Dataverse, expanding the range of supported services. (#1856)\n- **Helm CLI MCP Server**: Introduced a new server implementation for interacting with the Helm package manager via CLI, enhancing AI interaction capabilities. (#1607)\n- **MongoDB with Mongoose MCP Server**: Added a new MCP server for MongoDB using Mongoose, providing robust database interaction. (#1283)\n- **Standard Korean Dictionary MCP Server**: Added to the README, offering language support for Korean. (#1271)\n- **Matlab-MCP Server**: Added a new server for Matlab, broadening computational and analytical capabilities. (#1193)\n\n#### 🔧 Improvements\n- **Everything Server Multiple Connection Support**: Enhanced the Everything server to support multiple connections, improving scalability and performance. (#1884)\n\n#### 🐛 Bug Fixes\n- **PostgreSQL Security Mitigation**: Implemented basic mitigation against PostgreSQL query injections that could trigger writes or other dangerous actions, enhancing security. (#1889)\n- **Remove Version Check Workflow**: Removed the version-check.yml from GitHub workflows, which was causing CI failures due to the removal of the GitHub server. (#1956)"
+  },
+  {
+    "input": {
+      "commits": [
+        {
+          "author": "Natalia",
+          "date": "2025-05-28T13:03:06Z",
+          "message": "Added stub release notes and release date for 5.2.2, 5.1.10, and 4.2.22."
+        },
+        {
+          "author": "Clifford Gama",
+          "date": "2025-05-27T21:20:07Z",
+          "message": "Removed redundant redefinition of variable in tests/test_utils/tests.py."
+        },
+        {
+          "author": "Tim Graham",
+          "date": "2025-05-27T12:02:54Z",
+          "message": "Removed unreachable check for None in TruncBase.convert_value()."
+        },
+        {
+          "author": "Jason Judkins",
+          "date": "2025-05-26T15:33:29Z",
+          "message": "Fixed #36402, Refs #35980 -- Updated built package name in reusable apps tutorial for PEP 625."
+        },
+        {
+          "author": "Nick Pope",
+          "date": "2025-05-22T21:23:02Z",
+          "message": "Fixed flakiness in file_storage.tests.CustomStorageTests.test_file_get_accessed_time.\n\nTwo separate calls to look up access time can result in sub-second\ndifferences which cause the test to fail.\n\nAlso made the equivalent tests for ctime and mtime have the same\nchanges to ensure that they won't flake in the same way in future."
+        },
+        {
+          "author": "Adam Johnson",
+          "date": "2025-05-21T12:48:59Z",
+          "message": "Fixed #36405 -- Fixed Aggregate.order_by using OuterRef.\n\nco-authored-by: Simon Charette <charette.s@gmail.com>"
+        },
+        {
+          "author": "Adam Johnson",
+          "date": "2025-05-21T14:16:12Z",
+          "message": "Fixed #36404 -- Fixed Aggregate.filter using OuterRef.\n\nRegression in a76035e925ff4e6d8676c65cb135c74b993b1039.\nThank you to Simon Charette for the review.\n\nco-authored-by: Simon Charette <charette.s@gmail.com>"
+        },
+        {
+          "author": "Adam Zapletal",
+          "date": "2025-05-22T21:41:41Z",
+          "message": "Fixed typo in docs/ref/forms/renderers.txt."
+        },
+        {
+          "author": "Simon Charette",
+          "date": "2025-05-23T05:00:29Z",
+          "message": "Refs #35444 -- Adjusted multi-args distinct aggregate test ordering expectations.\n\nUnless an explicit order_by is specified for the test the ordering of the\naggregation results is undefined."
+        },
+        {
+          "author": "Sarah Boyce",
+          "date": "2025-05-20T15:12:25Z",
+          "message": "Fixed #36390 -- Deprecated RemoteUserMiddleware subclasses missing aprocess_request().\n\nRegression in 50f89ae850f6b4e35819fe725a08c7e579bfd099.\nThank you to shamoon for the report and Natalia Bidart for the review."
+        },
+        {
+          "author": "Natalia",
+          "date": "2025-05-20T01:46:00Z",
+          "message": "Added helpers in csrf_tests and logging_tests to assert logs from `log_response()`."
+        },
+        {
+          "author": "Natalia",
+          "date": "2025-05-20T01:45:38Z",
+          "message": "Refs #26688 -- Added tests for `log_response()` internal helper."
+        },
+        {
+          "author": "nessita",
+          "date": "2025-05-20T11:57:11Z",
+          "message": "Refs #35829 -- Made cosmetic edits to django/contrib/admin/static/admin/img/README.md."
+        },
+        {
+          "author": "ontowhee",
+          "date": "2025-03-16T02:23:28Z",
+          "message": "Fixed #34262 -- Added support for AnyValue for SQLite, MySQL, Oracle, and Postgresql 16+.\n\nThanks Simon Charette for the guidance and review. Thanks Tim Schilling for the\ndocumentation review. Thanks David Wobrock for investigation and solution proposals."
+        },
+        {
+          "author": "Jacob Walls",
+          "date": "2025-05-19T18:09:09Z",
+          "message": "Fixed typo in docs/releases/6.0.txt."
+        },
+        {
+          "author": "Colleen Dunlap",
+          "date": "2025-05-15T19:41:59Z",
+          "message": "Fixed #36388 -- Made QuerySet.union() return self when called with no arguments.\n\nRegression in 9cb8baa0c4fa2c10789c5c8b65f4465932d4d172.\nThank you to Antoine Humeau for the report and Simon Charette for the review."
+        },
+        {
+          "author": "Samuel Cormier-Iijima",
+          "date": "2025-04-23T02:00:20Z",
+          "message": "Fixed #36348 -- Fixed handling multiple nested url()s in ManifestStaticFilesStorage.\n\nSigned-off-by: Samuel Cormier-Iijima <samuel@cormier-iijima.com>"
+        },
+        {
+          "author": "Jacob Walls",
+          "date": "2025-05-15T02:49:52Z",
+          "message": "Fixed #36392 -- Raised ValueError when subquery referencing composite pk selects too many columns."
+        },
+        {
+          "author": "Simon Charette",
+          "date": "2025-05-06T17:57:20Z",
+          "message": "Fixed #33312 -- Raised explicit exception when copying deferred model instances.\n\nPreviously save() would crash with an attempted forced update message, and both\nsave(force_insert=True) and bulk_create() would crash with DoesNotExist errors\ntrying to retrieve rows with an empty primary key (id IS NULL).\n\nImplementing deferred field model instance copying might be doable in certain\ncases (e.g. when all the deferred fields are db generated) but that's not\ntrivial to implement in a backward compatible way.\n\nThanks Adam Sołtysik for the report and test and Clifford for the review."
+        },
+        {
+          "author": "Mariusz Felisiak",
+          "date": "2025-05-15T17:52:51Z",
+          "message": "Refs #35844 -- Skipped selenium and geoip2 requirement in Windows for Python 3.14+.\n\nFollow up to d6925f0d6beb3c08ae24bdb8fd83ddb13d1756e4."
+        }
+      ],
+      "repository_url": "https://github.com/django/django",
+      "since": "2025-05-15T17:52:51Z"
+    },
+    "expected": "1. Executive Summary:\n   The latest updates to Django include significant improvements in database handling and error management, alongside the introduction of new features such as support for AnyValue across multiple databases. Several bug fixes enhance the stability and reliability of various Django components, ensuring smoother operation and better developer experience.\n\n2. Categorized Changes:\n\n   - 🚨 Breaking Changes\n     - Deprecated `RemoteUserMiddleware` subclasses missing `aprocess_request()` method. (Fix for regression in 50f89ae850f6b4e35819fe725a08c7e579bfd099) (#36390)\n\n   - ✨ New Features\n     - Added support for `AnyValue` for SQLite, MySQL, Oracle, and PostgreSQL 16+. This enhances the flexibility of database queries across different database backends. (#34262)\n\n   - 🔧 Improvements\n     - Adjusted multi-args distinct aggregate test ordering expectations to handle undefined ordering when no explicit `order_by` is specified. (Refs #35444)\n     - Made `QuerySet.union()` return self when called with no arguments, improving method consistency. (Fix for regression in 9cb8baa0c4fa2c10789c5c8b65f4465932d4d172) (#36388)\n\n   - 🐛 Bug Fixes\n     - Fixed flakiness in `file_storage.tests.CustomStorageTests.test_file_get_accessed_time` by addressing sub-second differences in access time lookups.\n     - Fixed `Aggregate.order_by` and `Aggregate.filter` using `OuterRef`, resolving issues with query construction. (#36405, #36404)\n     - Fixed handling of multiple nested `url()`s in `ManifestStaticFilesStorage`, ensuring correct URL processing. (#36348)\n     - Raised `ValueError` when a subquery referencing composite primary keys selects too many columns, providing clearer error messages. (#36392)\n     - Raised explicit exception when copying deferred model instances to prevent crashes and clarify error handling. (#33312)\n\nThese updates reflect Django's ongoing commitment to enhancing its framework's robustness and developer usability."
+  },
+  {
+    "input": {
+      "commits": [
+        {
+          "author": "Federico Bond",
+          "date": "2025-05-25T10:07:43Z",
+          "message": "Update Spanish translations (#9701)"
+        },
+        {
+          "author": "Rohit",
+          "date": "2025-05-13T14:10:21Z",
+          "message": "Update Django documentation links to use stable version (#9698)\n\nCo-authored-by: Bruno Alla <browniebroke@users.noreply.github.com>"
+        },
+        {
+          "author": "Rohit",
+          "date": "2025-05-01T12:44:34Z",
+          "message": "Fix broken Heroku JSON Schema link in schemas.md (#9693)\n\nReplaced the outdated Heroku JSON Schema reference URL, which was returning a 404 error, with the updated working link from the official Heroku blog."
+        },
+        {
+          "author": "Tom Christie",
+          "date": "2025-04-28T04:08:48Z",
+          "message": "Drop HTML line breaks on long headers in browsable API (#9438)\n\n* Drop HTML line breaks on long headers\n\n* Remove related test\n\n* Fix flake8\n\n---------\n\nCo-authored-by: Asif Saif Uddin <auvipy@gmail.com>\nCo-authored-by: Bruno Alla <alla.brunoo@gmail.com>"
+        },
+        {
+          "author": "rezatn0934",
+          "date": "2025-04-26T14:58:29Z",
+          "message": "Update persian translations (#9576)"
+        },
+        {
+          "author": "Salman Saeed Albukhaitan",
+          "date": "2025-04-26T14:42:44Z",
+          "message": "Update Arabic translations (#9595)"
+        },
+        {
+          "author": "Josh Thomas",
+          "date": "2025-04-23T09:03:14Z",
+          "message": "Fix `UniqueTogetherValidator` to handle fields w/ `source` attr (#9688)\n\n* Add failing test for `UniqueConstraint` validation with `source` attribute\n\n* Fix `UniqueTogetherValidator` to handle fields with source attribute\n\n* split inner sources logic out to tuple comprehension"
+        },
+        {
+          "author": "Carlton Gibson",
+          "date": "2025-04-10T10:05:06Z",
+          "message": "Updated funding page to represent current scope. (#9686)"
+        },
+        {
+          "author": "Ülgen Sarıkavak",
+          "date": "2025-04-09T06:24:18Z",
+          "message": "Add pyupgrade to pre-commit hooks (#9682)"
+        },
+        {
+          "author": "Yousef Abu Shanab",
+          "date": "2025-04-08T08:32:04Z",
+          "message": "Add `drf-restwind` and update outdated images in `browsable-api.md` (#9680)\n\n* add drf-restwind\n\n* Add images of 3rd party customization packages"
+        },
+        {
+          "author": "Bruno Alla",
+          "date": "2025-04-08T08:29:40Z",
+          "message": "Cleanup dependencies and conditions for unsupported Python versions (#9681)\n\n* Remove optional install backports.zoneinfo for unsupported Python versions and associated code\n\n* Remove conditions in tests for unsupported Python versions\n\n* Remove condition for unsupported Python versions"
+        },
+        {
+          "author": "ren000thomas",
+          "date": "2025-04-05T10:02:59Z",
+          "message": "Update Chinese translations (#9675)"
+        },
+        {
+          "author": "JAEGYUN JUNG",
+          "date": "2025-04-04T10:39:11Z",
+          "message": "Update test matrix to use Django 5.2 stable version (#9679)"
+        },
+        {
+          "author": "Stefan",
+          "date": "2025-04-04T08:24:28Z",
+          "message": "Add missing & fix German translations (#9676)"
+        },
+        {
+          "author": "JAEGYUN JUNG",
+          "date": "2025-04-02T17:35:29Z",
+          "message": "Update GitHub Actions to use Ubuntu 22.04 for testing (#9677)"
+        },
+        {
+          "author": "JAEGYUN JUNG",
+          "date": "2025-04-02T17:17:04Z",
+          "message": "Add missing & fix Korean translations (#9571)\n\n* update django.po file\n\n* update django.po translators\n\n* Changed the translation for the word “User” from “유저” to “사용자” to make it consistent with Django's translation\n\nreference: https://github.com/django/django/blob/5a91ad3d7115c692d497663a155edee5ebc8989c/django/contrib/admin/locale/ko/LC_MESSAGES/django.po#L601\n\n* Add missing translation for the word “Token\"\n\n* Fix wrong translation for word \"Created\"\n\n* Fix translation for \"Tokens\", just like django translation.\n\nreference: https://github.com/django/django/blob/5a91ad3d7115c692d497663a155edee5ebc8989c/django/contrib/auth/locale/ko/LC_MESSAGES/django.po#L235\n\n* Add missing translation for \"Invalid Input\"\n\n* Add missing translation for throttling messages\n\n* Add missing translation for CharField, BooleanField messages\n\n* fix: remove unnecessary space\n\n* Feat: add missing translation for SlugField error message\n\n* Feat: add missing translation for UUIDField error message\n\n* Fix: add (boolean) for booleanField message\n\n* Feat: add missing translation for `integer to float` error message\n\n* Feat: add & fix translation for DecimalField\n\n* Feat: add & fix translation for DateTimeField\n\n* Feat: add & fix translation for DurationField\n\n* Feat: add & fix translation for Selection&FilePathField\n\n* Feat: add & fix translation for DictField\n\n* Feat: add missing translation for filters\n\n* Feat: add missing translations for template\n\n* Feat: Change end punctuation to the “~세요.” used by Django translations\n\n* update django.po translators\n\n* Feat: add compiled message file\n\n* Update rest_framework/locale/ko_KR/LC_MESSAGES/django.po\n\nCo-authored-by: taezero <51291185+overtae@users.noreply.github.com>\n\n* Update rest_framework/locale/ko_KR/LC_MESSAGES/django.po\n\nCo-authored-by: taezero <51291185+overtae@users.noreply.github.com>\n\n* Feat: remove unnecessary multliline from django.po(kor translation)\n\n* Feat: remove unnecessary multliline from django.po(kor translation)\n\n* Feat: update Korean translations for authentication messages\n\n* Feat: Remove unnecessary English parenthesis descriptions\n\n* Feat: Remove unnecessary English parenthesis descriptions\n\n* Feat: Remove unnecessary English parenthesis descriptions\n\n* Feat: Update compiled message file for ko_KR\n\n---------\n\nCo-authored-by: taezero <51291185+overtae@users.noreply.github.com>"
+        },
+        {
+          "author": "Michiel W. Beijen",
+          "date": "2025-03-31T14:22:15Z",
+          "message": "Removed reference to GitHub Issues and Discussions (#9660)"
+        },
+        {
+          "author": "Matheus Oliveira",
+          "date": "2025-03-31T09:43:53Z",
+          "message": "Fix some typos in pt_BR translations (#9673)"
+        }
+      ],
+      "repository_url": "https://github.com/encode/django-rest-framework",
+      "since": "2025-03-28T14:28:49Z"
+    },
+    "expected": "1. **Executive Summary:**\n   The latest updates to Django REST Framework include significant improvements to translation files across multiple languages and a critical bug fix for the `UniqueTogetherValidator` to better handle fields with the `source` attribute. Additionally, minor enhancements to the browsable API and documentation links have been made to improve user experience and accessibility.\n\n2. **Categorized Changes:**\n\n   - 🚨 Breaking Changes\n     - None identified.\n\n   - ✨ New Features\n     - Added `drf-restwind` and updated outdated images in `browsable-api.md` to enhance third-party customization options. (#9680)\n\n   - 🔧 Improvements\n     - Dropped HTML line breaks on long headers in the browsable API to improve readability. (#9438)\n     - Updated Django documentation links to use the stable version, ensuring users access the most reliable resources. (#9698)\n     - Updated test matrix to use Django 5.2 stable version, aligning with the latest Django release for better compatibility. (#9679)\n     - Updated GitHub Actions to use Ubuntu 22.04 for testing, ensuring a more current testing environment. (#9677)\n\n   - 🐛 Bug Fixes\n     - Fixed `UniqueTogetherValidator` to handle fields with the `source` attribute, resolving validation issues. (#9688)\n     - Fixed broken Heroku JSON Schema link in `schemas.md`, replacing it with a working URL to prevent 404 errors. (#9693)\n\n   - 🌐 Translation Updates\n     - Updated translations for Spanish (#9701), Persian (#9576), Arabic (#9595), Chinese (#9675), German (#9676), Korean (#9571), and Portuguese (pt_BR) (#9673) to improve localization and user experience across different languages."
+  }
+]
