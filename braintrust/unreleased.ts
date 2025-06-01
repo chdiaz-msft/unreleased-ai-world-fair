@@ -5,10 +5,13 @@
 // sync your changes with Braintrust by running:
 //  $ braintrust push "braintrust/unreleased.ts"
 
-import braintrust from "braintrust";
+import braintrust, { initDataset } from "braintrust";
+import { z } from "zod";
+import sampleData from "../eval/changelogDataset.json";
+import { PROJECT_NAME } from "../lib/constants";
 
 const project = braintrust.projects.create({
-  name: "Unreleased-AI",
+  name: PROJECT_NAME,
 });
 
 export const generateChangelog1 = project.prompts.create({
@@ -60,49 +63,162 @@ export const generateChangelog2 = project.prompts.create({
   ],
 });
 
-export const changelogScorer = project.scorers.create({
-  name: "Changelog Quality Scorer",
-  slug: "changelog-quality-scorer",
-  description: "Evaluates the quality and completeness of generated changelogs",
+export const evalDataset = async () => {
+  const dataset = initDataset(PROJECT_NAME, { dataset: "Changelog Dataset" });
+
+  // Insert all rows from the dataset
+  for (let i = 0; i < sampleData.length; i++) {
+    const id = dataset.insert({
+      input: sampleData[i].input,
+      expected: sampleData[i].expected,
+    });
+  }
+
+};
+
+export const completenessScorer = project.scorers.create({
+  name: "Changelog Completeness Scorer",
+  slug: "changelog-completeness-scorer",
+  description: "Evaluates the completeness of generated changelogs",
   messages: [
     {
       role: "system",
-      content: `You are evaluating the quality of a changelog generated from a list of git commits.
+      content: `You are evaluating the completeness of a changelog generated from a list of git commits.
 
-  **Task**: Rate the changelog quality using one of four levels.
+    **Task**: Rate how comprehensively the changelog captures significant changes while appropriately filtering out trivial ones.
 
-  **Input Data**:
-  - Original commit list: {{input.commits}}
-  - Generated changelog: {{output}}
+    **Input Data**:
+    - Original commit list: {{input.commits}}
+    - Generated changelog: {{output}}
 
-  **Evaluation Criteria**:
-  Assess the changelog across these dimensions:
-  1. **Accuracy**: Correctly represents changes from commits
-  2. **Completeness**: Includes all significant changes, omits trivial ones
-  3. **Clarity**: Written in clear, user-friendly language
-  4. **Organization**: Properly categorized and structured
+    **Evaluation Focus - Completeness**:
+    Assess how well the changelog includes all important changes by examining:
 
-  **Quality Levels**:
+    1. **Significant Change Coverage**: Are all major features, bug fixes, breaking changes, and improvements from the commits included?
+    2. **Appropriate Filtering**: Are trivial changes (typos, minor formatting, internal refactoring) properly omitted?
+    3. **No Major Omissions**: Are there any important user-facing or developer-impacting changes missing from the changelog?
+    4. **Balanced Scope**: Does the changelog capture the right level of detail without being overwhelming or insufficient?
 
-  **Excellent**: Changelog perfectly captures all important changes with clear categorization, excellent readability, and no significant omissions or inaccuracies.
+    **Completeness Levels**:
 
-  **Good**: Changelog captures most important changes with good organization and clarity, but may have minor issues with completeness or presentation.
+    **Excellent**: Changelog includes all significant changes that users and developers need to know about, while appropriately filtering out trivial commits. No important changes are missing.
 
-  **Fair**: Changelog covers the main changes but has noticeable issues with accuracy, organization, or clarity that impact usability.
+    **Good**: Changelog captures most significant changes with good judgment about what to include/exclude, but may miss one or two minor-but-notable changes or include some borderline trivial items.
 
-  **Poor**: Changelog has significant problems - missing important changes, poor organization, unclear language, or major inaccuracies.
+    **Fair**: Changelog covers the main significant changes but has noticeable gaps in coverage or includes too many trivial changes, affecting the balance of what should be documented.
 
-  **Output Format**:
-  Reasoning: [Detailed analysis of accuracy, completeness, clarity, and organization]
-  Choice: Excellent, Good, Fair, or Poor`
+    **Poor**: Changelog misses multiple important changes that users need to know about, or is cluttered with trivial changes that obscure the significant ones.
+
+    **Output Format**:
+    Reasoning: [Detailed analysis of which significant changes are included/missing, assessment of filtering decisions, and evaluation of overall coverage]
+    Choice: Excellent, Good, Fair, or Poor`,
     }
   ],
-  model: "gpt-4o",
+  model: "gpt-4.1",
   useCot: true,
   choiceScores: {
     Excellent: 1,
     Good: 0.75,
     Fair: 0.5,
     Poor: 0.25,
-  }
+  },
 });
+
+export const accuracyScorer = project.scorers.create({
+  name: "Changelog Accuracy Scorer",
+  slug: "changelog-accuracy-scorer",
+  description: "Evaluates the accuracy of a generated changelogs",
+  messages: [
+    {
+      role: "system",
+      content: `
+  You are evaluating the accuracy of a changelog generated from a list of git commits.
+
+  **Task**: Rate how accurately the changelog represents the actual changes described in the commits.
+
+  **Input Data**:
+  - Original commit list: {{input.commits}}
+  - Generated changelog: {{output}}
+
+  **Evaluation Focus - Accuracy**:
+  Assess how well the changelog reflects the actual changes by examining:
+
+  1. **Factual Correctness**: Does the changelog accurately describe what was actually changed according to the commits?
+  2. **No Misrepresentation**: Are there any changes described in the changelog that don't match the commit details?
+  3. **Technical Precision**: Are technical details, feature names, and implementation specifics correctly captured?
+  4. **Change Impact**: Is the significance and scope of changes accurately represented (e.g., breaking vs. non-breaking)?
+
+  **Accuracy Levels**:
+
+  **Excellent**: Changelog perfectly matches commit details with no factual errors, misrepresentations, or technical inaccuracies. Every described change can be directly traced to specific commits.
+
+  **Good**: Changelog accurately represents the vast majority of changes with only very minor discrepancies that don't affect understanding of what was actually implemented.
+
+  **Fair**: Changelog generally reflects the commits but contains some noticeable inaccuracies in describing changes, feature details, or impact that could mislead users about what was actually done.
+
+  **Poor**: Changelog contains significant factual errors, misrepresents changes, or describes things that weren't actually implemented according to the commits.
+
+  **Output Format**:
+  Reasoning: [Detailed analysis comparing specific changelog entries to corresponding commits, noting any discrepancies or confirming accuracy]
+  Choice: Excellent, Good, Fair, or Poor`,
+    }
+  ],
+  model: "gpt-4.1",
+  useCot: true,
+  choiceScores: {
+    Excellent: 1,
+    Good: 0.75,
+    Fair: 0.5,
+    Poor: 0.25,
+  },
+});
+
+export const formattingScorer = project.scorers.create({
+  name: "Changelog Formatting Scorer",
+  slug: "changelog-formatting-scorer",
+  description: "Evaluates the formatting of a changelog so it contains the correct sections in the correct order.",
+  parameters: z.object({
+    output: z.string(),
+  }),
+  handler: async({ output }) => {
+    const sections = [
+      '- 🚨 Breaking Changes',
+      '- ✨ New Features', 
+      '- 🔧 Improvements',
+      '- 🐛 Bug Fixes'
+    ];
+
+    // Find all sections that exist in the output with their positions
+    const foundSections: { index: number; position: number }[] = [];
+    
+    sections.forEach((section, index) => {
+      const position = output.indexOf(section);
+      if (position !== -1) {
+        foundSections.push({ index, position });
+      }
+    });
+
+    // Return 0 if no sections found
+    if (foundSections.length === 0) {
+      return 0;
+    }
+
+    // If only one section, return 1 (correct by default)
+    if (foundSections.length === 1) {
+      return 1;
+    }
+
+    // Check if sections are in correct order
+    foundSections.sort((a, b) => a.position - b.position);
+    
+    for (let i = 1; i < foundSections.length; i++) {
+      if (foundSections[i].index <= foundSections[i - 1].index) {
+        return 0; // Wrong order
+      }
+    }
+
+    return 1; // Sections found and in correct order
+  },
+});
+
+evalDataset();
