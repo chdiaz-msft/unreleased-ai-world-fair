@@ -1,12 +1,10 @@
-# Unreleased AI
+# AIE World's Fair Workshop
 
-Unreleased AI is a simple web application that allows you to inspect commits from your favorite
+This workshop contains a simple web application that allows you to inspect commits from your favorite
 open source repos that have not been released yet, and summarize what's coming. It comes fully
 baked with Braintrust setup for logging, evals, and prompt management.
 
 ## Getting started
-
-To setup your API keys:
 
 - Create [Braintrust]("https://braintrust.dev") account and [create an API key](https://www.braintrust.dev/app/settings?subroute=api-keys).
 - Create a `.env.local` file and add the API key (`BRAINTRUST_API_KEY=...`).
@@ -24,7 +22,10 @@ pnpm install
 ```
 
 This will install the necessary dependencies and setup the project in Braintrust. If you visit Braintrust, you
-should see a project named `Unreleased`, containing a single prompt. Feel free to tweak it!
+should see a project named `AIE World's Fair Workshop`, containing the following:
+- 2 prompts
+- 3 scorers
+- 1 dataset
 
 ### Running the app
 
