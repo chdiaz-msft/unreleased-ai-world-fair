@@ -1,19 +1,29 @@
-# Unreleased AI
+# AIE World's Fair Workshop
 
-Unreleased AI is a simple web application that allows you to inspect commits from your favorite
+This workshop contains a simple web application that allows you to inspect commits from your favorite
 open source repos that have not been released yet, and summarize what's coming. It comes fully
 baked with Braintrust setup for logging, evals, and prompt management.
 
+## Requirements
+
+- Braintrust Account (setup below)
+- `OPENAI_API_KEY`
+
 ## Getting started
 
-To setup your API keys:
+- Clone this repo locally
 
-- Create [Braintrust]("https://braintrust.dev") account and [create an API key](https://www.braintrust.dev/app/settings?subroute=api-keys).
-- Create a `.env.local` file and add the API key (`BRAINTRUST_API_KEY=...`).
+```bash
+git clone https://github.com/cesteban29/repo-changelog-generator.git
+```
+
+- Create a [Braintrust]("https://braintrust.dev") account and [create an API key](https://www.braintrust.dev/app/settings?subroute=api-keys).
 - Plug in your OpenAI API key in the [settings page](https://www.braintrust.dev/app/settings?subroute=secrets).
+- Copy the .env.local.example file to a .env.local and input your `BRAINTRUST_API_KEY`, `OPENAI_API_KEY`, and, optionally, a `GITHUB_ACCESS_TOKEN`
 
-That's it! Now you can use your Braintrust API key to access OpenAI (and other AI providers), as well as log
-completions, run evals, and create prompts.
+```bash
+cp .env.local.example .env.local
+```
 
 ### Installing JS dependencies
 
@@ -24,7 +34,10 @@ pnpm install
 ```
 
 This will install the necessary dependencies and setup the project in Braintrust. If you visit Braintrust, you
-should see a project named `Unreleased`, containing a single prompt. Feel free to tweak it!
+should see a project named `AIE World's Fair Workshop`, containing the following:
+- 2 prompts
+- 3 scorers
+- 1 dataset
 
 ### Running the app
 
@@ -41,6 +54,16 @@ pnpm eval
 ```
 
 This will run the evals defined in [changelog.eval.ts](./eval/changelog.eval.ts) and log the results to Braintrust.
+
+To run a [remote eval](https://www.braintrust.dev/docs/guides/remote-evals) run the command below:
+
+```bash
+pnpm remote-eval
+```
+
+This will expose the `Eval` running at [remoteEval.eval.ts](./eval/remoteEval.eval.ts) on your local machine.  As a default, the server is exposed at `http://localhost:8300`.
+
+**Remote evals are currently in beta!**
 
 ## Developing
 

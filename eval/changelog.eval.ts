@@ -1,35 +1,25 @@
 import { invoke, Eval, initDataset, initFunction } from "braintrust";
-import { sampleData } from "./sampleData";
-import { comprehensiveness } from "./comprehensiveness-scorer";
 import { z } from "zod";
 import { PROJECT_NAME, PROMPT_SLUG } from "@/lib/constants";
 
-interface Input {
-  repository_url: string;
-  since: string;
-  commits: any[];
-}
 
+const accuracyScorer = initFunction({
+  projectName: PROJECT_NAME,
+  slug: "changelog-accuracy-scorer",
+})
 
-const comprehensivessScorer = ({
-  input,
-  output,
-}: {
-  input: Input;
-  output: string;
-}) => { 
-  if (!input.commits || input.commits.length === 0) {
-    return null;
-  }
-    return comprehensiveness({
-      input: input.commits.map(({ message }) => message).join("\n"),
-      output,
-    });
-};
+const completenessScorer = initFunction({
+  projectName: PROJECT_NAME,
+  slug: "changelog-completeness-scorer",
+})
+
+const formattingScorer = initFunction({
+  projectName: PROJECT_NAME,
+  slug: "changelog-formatting-scorer",
+})
 
 Eval(PROJECT_NAME, {
-  // data: initDataset({project: PROJECT_NAME, dataset: 'eval dataset'}),
-  data: () => [sampleData], // Uncomment to use sample data
+  data: initDataset({project: PROJECT_NAME, dataset: 'Changelog Dataset'}),
   task: async (input) =>
     await invoke({
       projectName: PROJECT_NAME,
@@ -37,8 +27,5 @@ Eval(PROJECT_NAME, {
       input,
       schema: z.string(),
     }),
-  scores: [comprehensivessScorer, initFunction({
-    projectName: PROJECT_NAME,
-    slug: "changelog-quality-scorer",
-  })],
+  scores: [accuracyScorer, completenessScorer, formattingScorer],
 });
