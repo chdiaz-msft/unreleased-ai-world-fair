@@ -1,7 +1,18 @@
 import braintrust, { initDataset } from "braintrust";
 import { z } from "zod";
-import sampleData from "../eval/changelogDataset.json";
+import changelogData from "../eval/changelogDataset.json";
 import { PROJECT_NAME } from "../lib/constants";
+
+interface ChangelogData {
+  input: {
+    commits: any[];
+    repository_url: string;
+    since: string;
+  };
+  expected: string;
+}
+
+const repoData: ChangelogData[] = changelogData as ChangelogData[]; 
 
 const project = braintrust.projects.create({
   name: PROJECT_NAME,
@@ -59,11 +70,11 @@ export const generateChangelog2 = project.prompts.create({
 export const evalDataset = async () => {
   const dataset = initDataset(PROJECT_NAME, { dataset: "Changelog Dataset" });
 
-  // Insert all rows from the dataset
-  for (let i = 0; i < sampleData.length; i++) {
-    const id = dataset.insert({
-      input: sampleData[i].input,
-      expected: sampleData[i].expected,
+  for (let i = 0; i < repoData.length; i++) {
+    dataset.update({
+      id: `changelog-record-${i}`, // Use stable IDs for idempotency
+      input: repoData[i].input,
+      expected: repoData[i].expected.replace(/\n/g, ""),
     });
   }
 
@@ -175,10 +186,10 @@ export const formattingScorer = project.scorers.create({
   }),
   handler: async({ output }) => {
     const sections = [
-      '- 🚨 Breaking Changes',
-      '- ✨ New Features', 
-      '- 🔧 Improvements',
-      '- 🐛 Bug Fixes'
+      '🚨 Breaking Changes',
+      '✨ New Features', 
+      '🔧 Improvements',
+      '🐛 Bug Fixes'
     ];
 
     // Find all sections that exist in the output with their positions
