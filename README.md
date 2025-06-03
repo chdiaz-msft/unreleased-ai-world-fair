@@ -34,7 +34,7 @@ pnpm install
 ```
 
 This will install the necessary dependencies and setup the project in Braintrust. If you visit Braintrust, you
-should see a project named `AIE World's Fair Workshop`, containing the following:
+should see a project named `Unreleased-AI`, containing the following:
 - 2 prompts
 - 3 scorers
 - 1 dataset
