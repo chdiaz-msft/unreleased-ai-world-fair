@@ -7,8 +7,7 @@ import { PROJECT_NAME } from "../lib/constants";
 
 const client = wrapOpenAI(
   new OpenAI({
-    apiKey: process.env.BRAINTRUST_API_KEY,
-    baseURL: "https://braintrustproxy.com/v1",
+    apiKey: process.env.OPENAI_API_KEY,
   })
 );
 
@@ -42,6 +41,7 @@ Eval("Changelog Generator Eval", {
       model: parameters.model,
       messages: prompt,
     });
+    console.log(completion.choices[0].message.content);
     return completion.choices[0].message.content ?? "";
   },
   scores: [Levenshtein],
