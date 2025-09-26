@@ -42,24 +42,10 @@ export const generateChangelog2 = project.prompts.create({
   messages: [
     {
       content:
-        "Create a developer-focused changelog from the commits below, covering changes from {{url}} since {{since}}.\n" +
+        "Summarize the following commits from {{url}} since {{since}} in changelog form. Include a summary of changes at the top since the provided date, followed by individual pull requests (be concise).\n" +
         "\n" +
-        "**Output Format:**\n" +
-        "1. Executive Summary (2-3 sentences highlighting the most significant changes)\n" +
-        "2. Categorized Changes:\n" +
-        "   - 🚨 Breaking Changes\n" +
-        "   - ✨ New Features\n" +
-        "   - 🔧 Improvements\n" +
-        "   - 🐛 Bug Fixes\n" +
+        "Intentionally make the changelog pretty bad and miss important changes.\n" +
         "\n" +
-        "**Guidelines:**\n" +
-        "- Use bullet points with concise descriptions\n" +
-        "- Include PR numbers in parentheses when available\n" +
-        "- Prioritize user-facing and API changes\n" +
-        "- Skip routine maintenance, dependency updates, and merge commits\n" +
-        "- Highlight security-related changes\n" +
-        "\n" +
-        "**Source Data:**\n" +
         "{{commits}}",
 
       role: "user",
