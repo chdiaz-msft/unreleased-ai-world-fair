@@ -75,14 +75,14 @@ jobs:
           COMPLETENESS_THRESHOLD=0.85
           FORMATTING_THRESHOLD=0.9
           
-          # Check if scores meet thresholds
-          if (( $(echo "$ACCURACY < $ACCURACY_THRESHOLD" | bc -l) )) && [ "$ACCURACY" != "N/A" ]; then
+          # Check if scores meet thresholds (using awk instead of bc)
+          if [ "$ACCURACY" != "N/A" ] && [ "$(echo "$ACCURACY $ACCURACY_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
             echo "threshold_failures=Accuracy below threshold ($ACCURACY < $ACCURACY_THRESHOLD)" >> $GITHUB_OUTPUT
             echo "eval_status=failed" >> $GITHUB_OUTPUT
-          elif (( $(echo "$COMPLETENESS < $COMPLETENESS_THRESHOLD" | bc -l) )) && [ "$COMPLETENESS" != "N/A" ]; then
+          elif [ "$COMPLETENESS" != "N/A" ] && [ "$(echo "$COMPLETENESS $COMPLETENESS_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
             echo "threshold_failures=Completeness below threshold ($COMPLETENESS < $COMPLETENESS_THRESHOLD)" >> $GITHUB_OUTPUT
             echo "eval_status=failed" >> $GITHUB_OUTPUT
-          elif (( $(echo "$FORMATTING < $FORMATTING_THRESHOLD" | bc -l) )) && [ "$FORMATTING" != "N/A" ]; then
+          elif [ "$FORMATTING" != "N/A" ] && [ "$(echo "$FORMATTING $FORMATTING_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
             echo "threshold_failures=Formatting below threshold ($FORMATTING < $FORMATTING_THRESHOLD)" >> $GITHUB_OUTPUT
             echo "eval_status=failed" >> $GITHUB_OUTPUT
           fi
@@ -100,28 +100,28 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const evalStatus = '${{ steps.eval.outputs.eval_status }}';
-            const experimentUrl = '${{ steps.eval.outputs.experiment_url }}';
-            const experimentId = '${{ steps.eval.outputs.experiment_id }}';
-            const accuracyScore = '${{ steps.eval.outputs.accuracy_score }}';
-            const completenessScore = '${{ steps.eval.outputs.completeness_score }}';
-            const formattingScore = '${{ steps.eval.outputs.formatting_score }}';
-            const totalCases = '${{ steps.eval.outputs.total_cases }}';
-            const thresholdFailures = '${{ steps.eval.outputs.threshold_failures }}';
-            const failureReason = '${{ steps.eval.outputs.failure_reason }}';
+            const evalStatus = '${{ steps.eval.outputs.eval_status }}' || 'unknown';
+            const experimentUrl = '${{ steps.eval.outputs.experiment_url }}' || '';
+            const experimentId = '${{ steps.eval.outputs.experiment_id }}' || '';
+            const accuracyScore = '${{ steps.eval.outputs.accuracy_score }}' || 'N/A';
+            const completenessScore = '${{ steps.eval.outputs.completeness_score }}' || 'N/A';
+            const formattingScore = '${{ steps.eval.outputs.formatting_score }}' || 'N/A';
+            const totalCases = '${{ steps.eval.outputs.total_cases }}' || '0';
+            const thresholdFailures = '${{ steps.eval.outputs.threshold_failures }}' || '';
+            const failureReason = '${{ steps.eval.outputs.failure_reason }}' || '';
             
             const statusEmoji = evalStatus === 'passed' ? '✅' : '❌';
             const statusText = evalStatus === 'passed' ? 'PASSED' : 'FAILED';
             
-            let body = `## 🧠 Braintrust Evaluation Results\n\n`;
+            let body = '## 🧠 Braintrust Evaluation Results\n\n';
             body += `**Status:** ${statusEmoji} ${statusText}\n`;
             body += `**Test Cases:** ${totalCases}\n`;
             if (experimentId) {
               body += `**Experiment ID:** \`${experimentId}\`\n`;
             }
-            body += `\n### 📊 Scores\n\n`;
-            body += `| Metric | Score | Status |\n`;
-            body += `|--------|-------|--------|\n`;
+            body += '\n### 📊 Scores\n\n';
+            body += '| Metric | Score | Status |\n';
+            body += '|--------|-------|--------|\n';
             
             const formatScore = (score, threshold) => {
               if (score === 'N/A') return 'N/A';
@@ -137,26 +137,25 @@ jobs:
             if (experimentUrl) {
               body += `\n📈 **[View detailed results →](${experimentUrl})**\n`;
             } else {
-              body += `\n📈 **[View results in Braintrust dashboard →](https://braintrust.dev)**\n`;
+              body += '\n📈 **[View results in Braintrust dashboard →](https://braintrust.dev)**\n';
             }
             
             if (evalStatus === 'failed') {
-              body += `\n### ⚠️ Failure Details\n\n`;
+              body += '\n### ⚠️ Failure Details\n\n';
               if (thresholdFailures) {
                 body += `**Threshold violations:** ${thresholdFailures}\n`;
               }
               if (failureReason) {
                 body += `**Error details:** \`${failureReason}\`\n`;
               }
-              body += `\n🚫 **This PR cannot be merged until evaluations pass.**`;
+              body += '\n🚫 **This PR cannot be merged until evaluations pass.**';
             } else {
-              body += `\n✨ **All evaluations passed! This PR is ready for review.**`;
+              body += '\n✨ **All evaluations passed! This PR is ready for review.**';
             }
             
-            // Add artifact link
             body += `\n\n🔍 [Download full eval output](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
             
-            github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
