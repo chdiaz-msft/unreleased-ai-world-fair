@@ -30,7 +30,7 @@ jobs:
       - name: Push Braintrust functions
         env:
           BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
-        run: braintrust push braintrust --if-exists ignore
+        run: npx braintrust push braintrust --if-exists ignore
 
       - name: Run Braintrust evaluation
         id: eval
