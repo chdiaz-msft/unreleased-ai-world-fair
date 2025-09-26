@@ -116,7 +116,7 @@ jobs:
             THRESHOLD_FAILURES="Completeness below threshold (${COMPLETENESS}% < 85%)"
             echo "eval_status=failed" >> $GITHUB_OUTPUT
           elif [ "$FORMATTING_DECIMAL" != "N/A" ] && [ "$(echo "$FORMATTING_DECIMAL $FORMATTING_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
-            THRESHOLD_FAILURES="Formatting below threshold (${FORMATTING}% < 90%)"
+            THRESHOLD_FAILURES="Formatting below threshold (${FORMATTING}% < 50%)"
             echo "eval_status=failed" >> $GITHUB_OUTPUT
           fi
           
