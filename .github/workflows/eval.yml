@@ -62,11 +62,11 @@ jobs:
             TOTAL_CASES="unknown"
           fi
           
-          # Check for failures or errors - properly escape all special characters
-          if grep -qi "error\|failed\|exception\|unable to process" eval_output.txt; then
+          # Check for actual failures or errors - exclude Braintrust summary lines
+          if grep -qi "failed\|exception\|unable to process" eval_output.txt || grep -E "error[^s]|Error[^s]" eval_output.txt | grep -v "0 errors"; then
             echo "eval_status=failed" >> $GITHUB_OUTPUT
             # Use base64 encoding to safely pass the error message
-            FAILURE_REASON=$(grep -i "error\|failed\|exception\|unable to process" eval_output.txt | head -1 | base64 -w 0)
+            FAILURE_REASON=$(grep -E "(failed|exception|unable to process|error[^s]|Error[^s])" eval_output.txt | grep -v "0 errors" | head -1 | base64 -w 0)
             echo "failure_reason_encoded=${FAILURE_REASON}" >> $GITHUB_OUTPUT
           else
             echo "eval_status=passed" >> $GITHUB_OUTPUT
@@ -105,29 +105,18 @@ jobs:
           # Set thresholds (as decimals to match converted scores)
           ACCURACY_THRESHOLD=0.8
           COMPLETENESS_THRESHOLD=0.85
-          FORMATTING_THRESHOLD=0.5
+          FORMATTING_THRESHOLD=0.9
           
-          echo "DEBUG: Thresholds - Accuracy: $ACCURACY_THRESHOLD, Completeness: $COMPLETENESS_THRESHOLD, Formatting: $FORMATTING_THRESHOLD"
-          
-          # Check thresholds - collect all failures
+          # Check thresholds
           THRESHOLD_FAILURES=""
-          FAILED_CHECKS=""
-          
           if [ "$ACCURACY_DECIMAL" != "N/A" ] && [ "$(echo "$ACCURACY_DECIMAL $ACCURACY_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
-            FAILED_CHECKS="${FAILED_CHECKS}Accuracy below threshold (${ACCURACY}% < 80%); "
-          fi
-          
-          if [ "$COMPLETENESS_DECIMAL" != "N/A" ] && [ "$(echo "$COMPLETENESS_DECIMAL $COMPLETENESS_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
-            FAILED_CHECKS="${FAILED_CHECKS}Completeness below threshold (${COMPLETENESS}% < 85%); "
-          fi
-          
-          if [ "$FORMATTING_DECIMAL" != "N/A" ] && [ "$(echo "$FORMATTING_DECIMAL $FORMATTING_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
-            FAILED_CHECKS="${FAILED_CHECKS}Formatting below threshold (${FORMATTING}% < 50%); "
-          fi
-          
-          # Only fail if there are actual threshold failures
-          if [ -n "$FAILED_CHECKS" ]; then
-            THRESHOLD_FAILURES="$FAILED_CHECKS"
+            THRESHOLD_FAILURES="Accuracy below threshold (${ACCURACY}% < 80%)"
+            echo "eval_status=failed" >> $GITHUB_OUTPUT
+          elif [ "$COMPLETENESS_DECIMAL" != "N/A" ] && [ "$(echo "$COMPLETENESS_DECIMAL $COMPLETENESS_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
+            THRESHOLD_FAILURES="Completeness below threshold (${COMPLETENESS}% < 85%)"
+            echo "eval_status=failed" >> $GITHUB_OUTPUT
+          elif [ "$FORMATTING_DECIMAL" != "N/A" ] && [ "$(echo "$FORMATTING_DECIMAL $FORMATTING_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
+            THRESHOLD_FAILURES="Formatting below threshold (${FORMATTING}% < 90%)"
             echo "eval_status=failed" >> $GITHUB_OUTPUT
           fi
           
@@ -192,7 +181,7 @@ jobs:
             
             body += `| Accuracy | ${formatScore(accuracyScore, 0.8)} | Threshold: ≥80% |\n`;
             body += `| Completeness | ${formatScore(completenessScore, 0.85)} | Threshold: ≥85% |\n`;
-            body += `| Formatting | ${formatScore(formattingScore, 0.5)} | Threshold: ≥50% |\n`;
+            body += `| Formatting | ${formatScore(formattingScore, 0.9)} | Threshold: ≥90% |\n`;
             
             if (experimentUrl) {
               body += `\n📈 **[View detailed results →](${experimentUrl})**\n`;
