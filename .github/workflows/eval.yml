@@ -25,31 +25,202 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
+        run: pnpm install --ignore-scripts
+
+      - name: Push Braintrust functions
         env:
           BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
-        run: pnpm install
+        run: npx braintrust push braintrust --if-exists ignore
 
       - name: Run Braintrust evaluation
+        id: eval
         env:
           BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm eval
+        run: |
+          # Run eval and capture all output
+          pnpm eval 2>&1 | tee eval_output.txt
+          
+          # Extract experiment URL - looking for the actual URL pattern from your output
+          EXPERIMENT_URL=$(grep -o 'https://[^ ]*braintrust[^ ]*' eval_output.txt | head -1 || echo "")
+          
+          # Extract experiment ID from the URL or output
+          EXPERIMENT_ID=$(echo "$EXPERIMENT_URL" | grep -o '[A-Z]*-[0-9]*' | head -1 || echo "")
+          
+          # Extract scores - based on your actual output format
+          # Looking for patterns like "92.86% (0.08%) 'Changelog Accuracy Scorer'"
+          ACCURACY=$(grep -E "(Changelog Accuracy Scorer|changelog-accuracy-scorer)" eval_output.txt | grep -oE '[0-9]+\.[0-9]+%' | head -1 | sed 's/%//' || echo "N/A")
+          COMPLETENESS=$(grep -E "(Changelog Completeness|changelog-completeness-scorer)" eval_output.txt | grep -oE '[0-9]+\.[0-9]+%' | head -1 | sed 's/%//' || echo "N/A")  
+          FORMATTING=$(grep -E "(changelog-formatting-scorer|formatting-scorer)" eval_output.txt | grep -oE '[0-9]+\.[0-9]+%' | head -1 | sed 's/%//' || echo "N/A")
+          
+          # Debug: Print what we found
+          echo "DEBUG: Found scores - Accuracy: $ACCURACY, Completeness: $COMPLETENESS, Formatting: $FORMATTING"
+          
+          # Count test cases - safer approach
+          TOTAL_CASES=$(grep -c "datapoints" eval_output.txt || echo "unknown")
+          if [ "$TOTAL_CASES" = "0" ]; then
+            TOTAL_CASES="unknown"
+          fi
+          
+          # Check for actual failures or errors - exclude Braintrust summary lines
+          if grep -qi "failed\|exception\|unable to process" eval_output.txt || grep -E "error[^s]|Error[^s]" eval_output.txt | grep -v "0 errors"; then
+            echo "eval_status=failed" >> $GITHUB_OUTPUT
+            # Use base64 encoding to safely pass the error message
+            FAILURE_REASON=$(grep -E "(failed|exception|unable to process|error[^s]|Error[^s])" eval_output.txt | grep -v "0 errors" | head -1 | base64 -w 0)
+            echo "failure_reason_encoded=${FAILURE_REASON}" >> $GITHUB_OUTPUT
+          else
+            echo "eval_status=passed" >> $GITHUB_OUTPUT
+          fi
+          
+          # Set outputs with proper escaping
+          echo "experiment_url=${EXPERIMENT_URL}" >> $GITHUB_OUTPUT
+          echo "experiment_id=${EXPERIMENT_ID}" >> $GITHUB_OUTPUT
+          echo "accuracy_score=${ACCURACY}" >> $GITHUB_OUTPUT
+          echo "completeness_score=${COMPLETENESS}" >> $GITHUB_OUTPUT
+          echo "formatting_score=${FORMATTING}" >> $GITHUB_OUTPUT
+          echo "total_cases=${TOTAL_CASES}" >> $GITHUB_OUTPUT
+          
+          # Convert percentages to decimals for threshold checking
+          if [ "$ACCURACY" != "N/A" ]; then
+            ACCURACY_DECIMAL=$(echo "$ACCURACY" | awk '{print $1/100}')
+            echo "DEBUG: Accuracy decimal: $ACCURACY_DECIMAL"
+          else
+            ACCURACY_DECIMAL="N/A"
+          fi
+          
+          if [ "$COMPLETENESS" != "N/A" ]; then
+            COMPLETENESS_DECIMAL=$(echo "$COMPLETENESS" | awk '{print $1/100}')
+            echo "DEBUG: Completeness decimal: $COMPLETENESS_DECIMAL"
+          else
+            COMPLETENESS_DECIMAL="N/A"  
+          fi
+          
+          if [ "$FORMATTING" != "N/A" ]; then
+            FORMATTING_DECIMAL=$(echo "$FORMATTING" | awk '{print $1/100}')
+            echo "DEBUG: Formatting decimal: $FORMATTING_DECIMAL"
+          else
+            FORMATTING_DECIMAL="N/A"
+          fi
+          
+          # Set thresholds (as decimals to match converted scores)
+          ACCURACY_THRESHOLD=0.8
+          COMPLETENESS_THRESHOLD=0.85
+          FORMATTING_THRESHOLD=0.9
+          
+          # Check thresholds
+          THRESHOLD_FAILURES=""
+          if [ "$ACCURACY_DECIMAL" != "N/A" ] && [ "$(echo "$ACCURACY_DECIMAL $ACCURACY_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
+            THRESHOLD_FAILURES="Accuracy below threshold (${ACCURACY}% < 80%)"
+            echo "eval_status=failed" >> $GITHUB_OUTPUT
+          elif [ "$COMPLETENESS_DECIMAL" != "N/A" ] && [ "$(echo "$COMPLETENESS_DECIMAL $COMPLETENESS_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
+            THRESHOLD_FAILURES="Completeness below threshold (${COMPLETENESS}% < 85%)"
+            echo "eval_status=failed" >> $GITHUB_OUTPUT
+          elif [ "$FORMATTING_DECIMAL" != "N/A" ] && [ "$(echo "$FORMATTING_DECIMAL $FORMATTING_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
+            THRESHOLD_FAILURES="Formatting below threshold (${FORMATTING}% < 90%)"
+            echo "eval_status=failed" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "threshold_failures=${THRESHOLD_FAILURES}" >> $GITHUB_OUTPUT
 
-      - name: Comment PR with eval results
+      - name: Upload eval output as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-output
+          path: eval_output.txt
+          retention-days: 30
+
+      - name: Comment PR with detailed eval results
         if: always()
         uses: actions/github-script@v7
         with:
           script: |
-            const { execSync } = require('child_process');
+            const evalStatus = '${{ steps.eval.outputs.eval_status }}' || 'unknown';
+            const experimentUrl = '${{ steps.eval.outputs.experiment_url }}' || '';
+            const experimentId = '${{ steps.eval.outputs.experiment_id }}' || '';
+            const accuracyScore = '${{ steps.eval.outputs.accuracy_score }}' || 'N/A';
+            const completenessScore = '${{ steps.eval.outputs.completeness_score }}' || 'N/A';
+            const formattingScore = '${{ steps.eval.outputs.formatting_score }}' || 'N/A';
+            const totalCases = '${{ steps.eval.outputs.total_cases }}' || 'unknown';
+            const thresholdFailures = '${{ steps.eval.outputs.threshold_failures }}' || '';
             
-            // Get the latest eval results from Braintrust
-            // This is a placeholder - you'd need to implement actual result fetching
-            const evalResults = "✅ Evaluation completed successfully! Check Braintrust dashboard for detailed results.";
+            // Decode the base64 encoded error message safely
+            let failureReason = '';
+            const encodedFailureReason = '${{ steps.eval.outputs.failure_reason_encoded }}' || '';
+            if (encodedFailureReason) {
+              try {
+                failureReason = Buffer.from(encodedFailureReason, 'base64').toString('utf-8');
+                // Clean up the message and limit length
+                failureReason = failureReason.replace(/[`'"]/g, '').substring(0, 200);
+              } catch (e) {
+                failureReason = 'Error message could not be decoded';
+              }
+            }
             
-            github.rest.issues.createComment({
+            const statusEmoji = evalStatus === 'passed' ? '✅' : '❌';
+            const statusText = evalStatus === 'passed' ? 'PASSED' : 'FAILED';
+            
+            let body = '## 🧠 Braintrust Evaluation Results\n\n';
+            body += `**Status:** ${statusEmoji} ${statusText}\n`;
+            body += `**Test Cases:** ${totalCases}\n`;
+            if (experimentId) {
+              body += `**Experiment ID:** \`${experimentId}\`\n`;
+            }
+            body += '\n### 📊 Scores\n\n';
+            body += '| Metric | Score | Status |\n';
+            body += '|--------|-------|--------|\n';
+            
+            const formatScore = (score, threshold) => {
+              if (score === 'N/A') return 'N/A';
+              // Score is already a percentage number (like 92.86), threshold is decimal (like 0.8)
+              const numScore = parseFloat(score);
+              const thresholdPercent = threshold * 100;
+              const emoji = numScore >= thresholdPercent ? '✅' : '❌';
+              return `${score}% ${emoji}`;
+            };
+            
+            body += `| Accuracy | ${formatScore(accuracyScore, 0.8)} | Threshold: ≥80% |\n`;
+            body += `| Completeness | ${formatScore(completenessScore, 0.85)} | Threshold: ≥85% |\n`;
+            body += `| Formatting | ${formatScore(formattingScore, 0.9)} | Threshold: ≥90% |\n`;
+            
+            if (experimentUrl) {
+              body += `\n📈 **[View detailed results →](${experimentUrl})**\n`;
+            } else {
+              body += '\n📈 **[View results in Braintrust dashboard →](https://braintrust.dev)**\n';
+            }
+            
+            if (evalStatus === 'failed') {
+              body += '\n### ⚠️ Failure Details\n\n';
+              if (thresholdFailures) {
+                body += `**Threshold violations:** ${thresholdFailures}\n`;
+              }
+              if (failureReason) {
+                body += `**Error details:** ${failureReason}\n`;
+              }
+              body += '\n🚫 **This PR cannot be merged until evaluations pass.**';
+            } else {
+              body += '\n✨ **All evaluations passed! This PR is ready for review.**';
+            }
+            
+            body += `\n\n🔍 [Download full eval output](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+            
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## 🧠 Braintrust Evaluation Results\n\n${evalResults}\n\nView detailed results in your [Braintrust dashboard](https://braintrust.dev)`
+              body: body
             });
+
+      - name: Fail job if eval failed
+        if: steps.eval.outputs.eval_status == 'failed'
+        run: |
+          echo "❌ Evaluation failed - check the results above"
+          exit 1
+
+      - name: Summary
+        if: steps.eval.outputs.eval_status == 'passed'
+        run: |
+          echo "✅ All evaluations passed!"
+          echo "📊 Accuracy: ${{ steps.eval.outputs.accuracy_score }}%"
+          echo "📊 Completeness: ${{ steps.eval.outputs.completeness_score }}%"
+          echo "📊 Formatting: ${{ steps.eval.outputs.formatting_score }}%"
