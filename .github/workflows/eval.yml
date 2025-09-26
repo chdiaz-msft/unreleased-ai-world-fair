@@ -41,51 +41,78 @@ jobs:
           # Run eval and capture all output
           pnpm eval 2>&1 | tee eval_output.txt
           
-          # Extract key metrics (adjust regex patterns based on your actual output)
-          EXPERIMENT_URL=$(grep -oP 'https://braintrust\.dev[^\s]*' eval_output.txt | head -1 || echo "")
-          EXPERIMENT_ID=$(grep -oP 'Experiment.*?([a-f0-9-]{36})' eval_output.txt | tail -1 | grep -oP '[a-f0-9-]{36}' || echo "")
+          # Extract experiment URL - looking for the actual URL pattern from your output
+          EXPERIMENT_URL=$(grep -o 'https://[^ ]*braintrust[^ ]*' eval_output.txt | head -1 || echo "")
           
-          # Extract scores (adjust based on your scorer names)
-          ACCURACY=$(grep -oP 'changelog-accuracy-scorer.*?(\d+\.?\d*)' eval_output.txt | grep -oP '\d+\.?\d*' | tail -1 || echo "N/A")
-          COMPLETENESS=$(grep -oP 'changelog-completeness-scorer.*?(\d+\.?\d*)' eval_output.txt | grep -oP '\d+\.?\d*' | tail -1 || echo "N/A")
-          FORMATTING=$(grep -oP 'changelog-formatting-scorer.*?(\d+\.?\d*)' eval_output.txt | grep -oP '\d+\.?\d*' | tail -1 || echo "N/A")
+          # Extract experiment ID from the URL or output
+          EXPERIMENT_ID=$(echo "$EXPERIMENT_URL" | grep -o '[A-Z]*-[0-9]*' | head -1 || echo "")
           
-          # Count test cases
-          TOTAL_CASES=$(grep -c "input" eval_output.txt || echo "0")
+          # Extract scores - based on your actual output format
+          ACCURACY=$(grep "Changelog Accuracy Scorer" eval_output.txt | grep -o '[0-9]*\.[0-9]*%' | grep -o '[0-9]*\.[0-9]*' | head -1 || echo "N/A")
+          COMPLETENESS=$(grep "Changelog Completeness" eval_output.txt | grep -o '[0-9]*\.[0-9]*%' | grep -o '[0-9]*\.[0-9]*' | head -1 || echo "N/A")  
+          FORMATTING=$(grep "changelog-formatting-scorer" eval_output.txt | grep -o '[0-9]*\.[0-9]*%' | grep -o '[0-9]*\.[0-9]*' | head -1 || echo "N/A")
           
-          # Check for failures or errors
-          if grep -qi "error\|failed\|exception" eval_output.txt; then
+          # Count test cases - safer approach
+          TOTAL_CASES=$(grep -c "datapoints" eval_output.txt || echo "unknown")
+          if [ "$TOTAL_CASES" = "0" ]; then
+            TOTAL_CASES="unknown"
+          fi
+          
+          # Check for failures or errors - escape quotes properly
+          if grep -qi "error\|failed\|exception\|unable to process" eval_output.txt; then
             echo "eval_status=failed" >> $GITHUB_OUTPUT
-            FAILURE_REASON=$(grep -i "error\|failed\|exception" eval_output.txt | head -3 | tr '\n' ' ')
-            echo "failure_reason=$FAILURE_REASON" >> $GITHUB_OUTPUT
+            FAILURE_REASON=$(grep -i "error\|failed\|exception\|unable to process" eval_output.txt | head -1 | sed 's/"/\\"/g' | tr '\n' ' ')
+            echo "failure_reason=${FAILURE_REASON}" >> $GITHUB_OUTPUT
           else
             echo "eval_status=passed" >> $GITHUB_OUTPUT
           fi
           
-          # Set outputs
-          echo "experiment_url=$EXPERIMENT_URL" >> $GITHUB_OUTPUT
-          echo "experiment_id=$EXPERIMENT_ID" >> $GITHUB_OUTPUT
-          echo "accuracy_score=$ACCURACY" >> $GITHUB_OUTPUT
-          echo "completeness_score=$COMPLETENESS" >> $GITHUB_OUTPUT
-          echo "formatting_score=$FORMATTING" >> $GITHUB_OUTPUT
-          echo "total_cases=$TOTAL_CASES" >> $GITHUB_OUTPUT
+          # Set outputs with proper escaping
+          echo "experiment_url=${EXPERIMENT_URL}" >> $GITHUB_OUTPUT
+          echo "experiment_id=${EXPERIMENT_ID}" >> $GITHUB_OUTPUT
+          echo "accuracy_score=${ACCURACY}" >> $GITHUB_OUTPUT
+          echo "completeness_score=${COMPLETENESS}" >> $GITHUB_OUTPUT
+          echo "formatting_score=${FORMATTING}" >> $GITHUB_OUTPUT
+          echo "total_cases=${TOTAL_CASES}" >> $GITHUB_OUTPUT
           
-          # Set thresholds (adjust these values)
+          # Convert percentages to decimals for threshold checking
+          if [ "$ACCURACY" != "N/A" ]; then
+            ACCURACY_DECIMAL=$(echo "$ACCURACY" | awk '{print $1/100}')
+          else
+            ACCURACY_DECIMAL="N/A"
+          fi
+          
+          if [ "$COMPLETENESS" != "N/A" ]; then
+            COMPLETENESS_DECIMAL=$(echo "$COMPLETENESS" | awk '{print $1/100}')
+          else
+            COMPLETENESS_DECIMAL="N/A"  
+          fi
+          
+          if [ "$FORMATTING" != "N/A" ]; then
+            FORMATTING_DECIMAL=$(echo "$FORMATTING" | awk '{print $1/100}')
+          else
+            FORMATTING_DECIMAL="N/A"
+          fi
+          
+          # Set thresholds (as decimals to match converted scores)
           ACCURACY_THRESHOLD=0.8
           COMPLETENESS_THRESHOLD=0.85
           FORMATTING_THRESHOLD=0.9
           
-          # Check if scores meet thresholds (using awk instead of bc)
-          if [ "$ACCURACY" != "N/A" ] && [ "$(echo "$ACCURACY $ACCURACY_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
-            echo "threshold_failures=Accuracy below threshold ($ACCURACY < $ACCURACY_THRESHOLD)" >> $GITHUB_OUTPUT
+          # Check thresholds
+          THRESHOLD_FAILURES=""
+          if [ "$ACCURACY_DECIMAL" != "N/A" ] && [ "$(echo "$ACCURACY_DECIMAL $ACCURACY_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
+            THRESHOLD_FAILURES="Accuracy below threshold (${ACCURACY}% < 80%)"
             echo "eval_status=failed" >> $GITHUB_OUTPUT
-          elif [ "$COMPLETENESS" != "N/A" ] && [ "$(echo "$COMPLETENESS $COMPLETENESS_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
-            echo "threshold_failures=Completeness below threshold ($COMPLETENESS < $COMPLETENESS_THRESHOLD)" >> $GITHUB_OUTPUT
+          elif [ "$COMPLETENESS_DECIMAL" != "N/A" ] && [ "$(echo "$COMPLETENESS_DECIMAL $COMPLETENESS_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
+            THRESHOLD_FAILURES="Completeness below threshold (${COMPLETENESS}% < 85%)"
             echo "eval_status=failed" >> $GITHUB_OUTPUT
-          elif [ "$FORMATTING" != "N/A" ] && [ "$(echo "$FORMATTING $FORMATTING_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
-            echo "threshold_failures=Formatting below threshold ($FORMATTING < $FORMATTING_THRESHOLD)" >> $GITHUB_OUTPUT
+          elif [ "$FORMATTING_DECIMAL" != "N/A" ] && [ "$(echo "$FORMATTING_DECIMAL $FORMATTING_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
+            THRESHOLD_FAILURES="Formatting below threshold (${FORMATTING}% < 90%)"
             echo "eval_status=failed" >> $GITHUB_OUTPUT
           fi
+          
+          echo "threshold_failures=${THRESHOLD_FAILURES}" >> $GITHUB_OUTPUT
 
       - name: Upload eval output as artifact
         if: always()
@@ -106,7 +133,7 @@ jobs:
             const accuracyScore = '${{ steps.eval.outputs.accuracy_score }}' || 'N/A';
             const completenessScore = '${{ steps.eval.outputs.completeness_score }}' || 'N/A';
             const formattingScore = '${{ steps.eval.outputs.formatting_score }}' || 'N/A';
-            const totalCases = '${{ steps.eval.outputs.total_cases }}' || '0';
+            const totalCases = '${{ steps.eval.outputs.total_cases }}' || 'unknown';
             const thresholdFailures = '${{ steps.eval.outputs.threshold_failures }}' || '';
             const failureReason = '${{ steps.eval.outputs.failure_reason }}' || '';
             
@@ -125,14 +152,15 @@ jobs:
             
             const formatScore = (score, threshold) => {
               if (score === 'N/A') return 'N/A';
+              // Handle percentage format
               const numScore = parseFloat(score);
-              const emoji = numScore >= threshold ? '✅' : '❌';
-              return `${score} ${emoji}`;
+              const emoji = numScore >= (threshold * 100) ? '✅' : '❌';
+              return `${score}% ${emoji}`;
             };
             
-            body += `| Accuracy | ${formatScore(accuracyScore, 0.8)} | Threshold: ≥0.8 |\n`;
-            body += `| Completeness | ${formatScore(completenessScore, 0.85)} | Threshold: ≥0.85 |\n`;
-            body += `| Formatting | ${formatScore(formattingScore, 0.9)} | Threshold: ≥0.9 |\n`;
+            body += `| Accuracy | ${formatScore(accuracyScore, 0.8)} | Threshold: ≥80% |\n`;
+            body += `| Completeness | ${formatScore(completenessScore, 0.85)} | Threshold: ≥85% |\n`;
+            body += `| Formatting | ${formatScore(formattingScore, 0.9)} | Threshold: ≥90% |\n`;
             
             if (experimentUrl) {
               body += `\n📈 **[View detailed results →](${experimentUrl})**\n`;
@@ -146,7 +174,7 @@ jobs:
                 body += `**Threshold violations:** ${thresholdFailures}\n`;
               }
               if (failureReason) {
-                body += `**Error details:** \`${failureReason}\`\n`;
+                body += `**Error details:** \`${failureReason.substring(0, 200)}\`\n`;
               }
               body += '\n🚫 **This PR cannot be merged until evaluations pass.**';
             } else {
@@ -172,6 +200,6 @@ jobs:
         if: steps.eval.outputs.eval_status == 'passed'
         run: |
           echo "✅ All evaluations passed!"
-          echo "📊 Accuracy: ${{ steps.eval.outputs.accuracy_score }}"
-          echo "📊 Completeness: ${{ steps.eval.outputs.completeness_score }}"
-          echo "📊 Formatting: ${{ steps.eval.outputs.formatting_score }}"
+          echo "📊 Accuracy: ${{ steps.eval.outputs.accuracy_score }}%"
+          echo "📊 Completeness: ${{ steps.eval.outputs.completeness_score }}%"
+          echo "📊 Formatting: ${{ steps.eval.outputs.formatting_score }}%"
