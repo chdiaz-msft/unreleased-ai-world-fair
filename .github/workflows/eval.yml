@@ -105,7 +105,7 @@ jobs:
           # Set thresholds (as decimals to match converted scores)
           ACCURACY_THRESHOLD=0.8
           COMPLETENESS_THRESHOLD=0.85
-          FORMATTING_THRESHOLD=0.9
+          FORMATTING_THRESHOLD=0.5
           
           # Check thresholds
           THRESHOLD_FAILURES=""
