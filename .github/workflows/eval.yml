@@ -58,11 +58,12 @@ jobs:
             TOTAL_CASES="unknown"
           fi
           
-          # Check for failures or errors - escape quotes properly
+          # Check for failures or errors - properly escape all special characters
           if grep -qi "error\|failed\|exception\|unable to process" eval_output.txt; then
             echo "eval_status=failed" >> $GITHUB_OUTPUT
-            FAILURE_REASON=$(grep -i "error\|failed\|exception\|unable to process" eval_output.txt | head -1 | sed 's/"/\\"/g' | tr '\n' ' ')
-            echo "failure_reason=${FAILURE_REASON}" >> $GITHUB_OUTPUT
+            # Use base64 encoding to safely pass the error message
+            FAILURE_REASON=$(grep -i "error\|failed\|exception\|unable to process" eval_output.txt | head -1 | base64 -w 0)
+            echo "failure_reason_encoded=${FAILURE_REASON}" >> $GITHUB_OUTPUT
           else
             echo "eval_status=passed" >> $GITHUB_OUTPUT
           fi
@@ -135,7 +136,19 @@ jobs:
             const formattingScore = '${{ steps.eval.outputs.formatting_score }}' || 'N/A';
             const totalCases = '${{ steps.eval.outputs.total_cases }}' || 'unknown';
             const thresholdFailures = '${{ steps.eval.outputs.threshold_failures }}' || '';
-            const failureReason = '${{ steps.eval.outputs.failure_reason }}' || '';
+            
+            // Decode the base64 encoded error message safely
+            let failureReason = '';
+            const encodedFailureReason = '${{ steps.eval.outputs.failure_reason_encoded }}' || '';
+            if (encodedFailureReason) {
+              try {
+                failureReason = Buffer.from(encodedFailureReason, 'base64').toString('utf-8');
+                // Clean up the message and limit length
+                failureReason = failureReason.replace(/[`'"]/g, '').substring(0, 200);
+              } catch (e) {
+                failureReason = 'Error message could not be decoded';
+              }
+            }
             
             const statusEmoji = evalStatus === 'passed' ? '✅' : '❌';
             const statusText = evalStatus === 'passed' ? 'PASSED' : 'FAILED';
@@ -174,7 +187,7 @@ jobs:
                 body += `**Threshold violations:** ${thresholdFailures}\n`;
               }
               if (failureReason) {
-                body += `**Error details:** \`${failureReason.substring(0, 200)}\`\n`;
+                body += `**Error details:** ${failureReason}\n`;
               }
               body += '\n🚫 **This PR cannot be merged until evaluations pass.**';
             } else {
