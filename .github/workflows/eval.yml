@@ -48,9 +48,13 @@ jobs:
           EXPERIMENT_ID=$(echo "$EXPERIMENT_URL" | grep -o '[A-Z]*-[0-9]*' | head -1 || echo "")
           
           # Extract scores - based on your actual output format
-          ACCURACY=$(grep "Changelog Accuracy Scorer" eval_output.txt | grep -o '[0-9]*\.[0-9]*%' | grep -o '[0-9]*\.[0-9]*' | head -1 || echo "N/A")
-          COMPLETENESS=$(grep "Changelog Completeness" eval_output.txt | grep -o '[0-9]*\.[0-9]*%' | grep -o '[0-9]*\.[0-9]*' | head -1 || echo "N/A")  
-          FORMATTING=$(grep "changelog-formatting-scorer" eval_output.txt | grep -o '[0-9]*\.[0-9]*%' | grep -o '[0-9]*\.[0-9]*' | head -1 || echo "N/A")
+          # Looking for patterns like "92.86% (0.08%) 'Changelog Accuracy Scorer'"
+          ACCURACY=$(grep -E "(Changelog Accuracy Scorer|changelog-accuracy-scorer)" eval_output.txt | grep -oE '[0-9]+\.[0-9]+%' | head -1 | sed 's/%//' || echo "N/A")
+          COMPLETENESS=$(grep -E "(Changelog Completeness|changelog-completeness-scorer)" eval_output.txt | grep -oE '[0-9]+\.[0-9]+%' | head -1 | sed 's/%//' || echo "N/A")  
+          FORMATTING=$(grep -E "(changelog-formatting-scorer|formatting-scorer)" eval_output.txt | grep -oE '[0-9]+\.[0-9]+%' | head -1 | sed 's/%//' || echo "N/A")
+          
+          # Debug: Print what we found
+          echo "DEBUG: Found scores - Accuracy: $ACCURACY, Completeness: $COMPLETENESS, Formatting: $FORMATTING"
           
           # Count test cases - safer approach
           TOTAL_CASES=$(grep -c "datapoints" eval_output.txt || echo "unknown")
@@ -79,18 +83,21 @@ jobs:
           # Convert percentages to decimals for threshold checking
           if [ "$ACCURACY" != "N/A" ]; then
             ACCURACY_DECIMAL=$(echo "$ACCURACY" | awk '{print $1/100}')
+            echo "DEBUG: Accuracy decimal: $ACCURACY_DECIMAL"
           else
             ACCURACY_DECIMAL="N/A"
           fi
           
           if [ "$COMPLETENESS" != "N/A" ]; then
             COMPLETENESS_DECIMAL=$(echo "$COMPLETENESS" | awk '{print $1/100}')
+            echo "DEBUG: Completeness decimal: $COMPLETENESS_DECIMAL"
           else
             COMPLETENESS_DECIMAL="N/A"  
           fi
           
           if [ "$FORMATTING" != "N/A" ]; then
             FORMATTING_DECIMAL=$(echo "$FORMATTING" | awk '{print $1/100}')
+            echo "DEBUG: Formatting decimal: $FORMATTING_DECIMAL"
           else
             FORMATTING_DECIMAL="N/A"
           fi
@@ -165,9 +172,10 @@ jobs:
             
             const formatScore = (score, threshold) => {
               if (score === 'N/A') return 'N/A';
-              // Handle percentage format
+              // Score is already a percentage number (like 92.86), threshold is decimal (like 0.8)
               const numScore = parseFloat(score);
-              const emoji = numScore >= (threshold * 100) ? '✅' : '❌';
+              const thresholdPercent = threshold * 100;
+              const emoji = numScore >= thresholdPercent ? '✅' : '❌';
               return `${score}% ${emoji}`;
             };
             
