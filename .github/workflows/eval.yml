@@ -25,6 +25,8 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
         run: pnpm install
 
       - name: Run Braintrust evaluation
