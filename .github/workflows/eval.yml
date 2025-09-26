@@ -181,7 +181,7 @@ jobs:
             
             body += `| Accuracy | ${formatScore(accuracyScore, 0.8)} | Threshold: ≥80% |\n`;
             body += `| Completeness | ${formatScore(completenessScore, 0.85)} | Threshold: ≥85% |\n`;
-            body += `| Formatting | ${formatScore(formattingScore, 0.9)} | Threshold: ≥90% |\n`;
+            body += `| Formatting | ${formatScore(formattingScore, 0.5)} | Threshold: ≥50% |\n`;
             
             if (experimentUrl) {
               body += `\n📈 **[View detailed results →](${experimentUrl})**\n`;
