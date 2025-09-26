@@ -107,16 +107,27 @@ jobs:
           COMPLETENESS_THRESHOLD=0.85
           FORMATTING_THRESHOLD=0.5
           
-          # Check thresholds
+          echo "DEBUG: Thresholds - Accuracy: $ACCURACY_THRESHOLD, Completeness: $COMPLETENESS_THRESHOLD, Formatting: $FORMATTING_THRESHOLD"
+          
+          # Check thresholds - collect all failures
           THRESHOLD_FAILURES=""
+          FAILED_CHECKS=""
+          
           if [ "$ACCURACY_DECIMAL" != "N/A" ] && [ "$(echo "$ACCURACY_DECIMAL $ACCURACY_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
-            THRESHOLD_FAILURES="Accuracy below threshold (${ACCURACY}% < 80%)"
-            echo "eval_status=failed" >> $GITHUB_OUTPUT
-          elif [ "$COMPLETENESS_DECIMAL" != "N/A" ] && [ "$(echo "$COMPLETENESS_DECIMAL $COMPLETENESS_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
-            THRESHOLD_FAILURES="Completeness below threshold (${COMPLETENESS}% < 85%)"
-            echo "eval_status=failed" >> $GITHUB_OUTPUT
-          elif [ "$FORMATTING_DECIMAL" != "N/A" ] && [ "$(echo "$FORMATTING_DECIMAL $FORMATTING_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
-            THRESHOLD_FAILURES="Formatting below threshold (${FORMATTING}% < 50%)"
+            FAILED_CHECKS="${FAILED_CHECKS}Accuracy below threshold (${ACCURACY}% < 80%); "
+          fi
+          
+          if [ "$COMPLETENESS_DECIMAL" != "N/A" ] && [ "$(echo "$COMPLETENESS_DECIMAL $COMPLETENESS_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
+            FAILED_CHECKS="${FAILED_CHECKS}Completeness below threshold (${COMPLETENESS}% < 85%); "
+          fi
+          
+          if [ "$FORMATTING_DECIMAL" != "N/A" ] && [ "$(echo "$FORMATTING_DECIMAL $FORMATTING_THRESHOLD" | awk '{print ($1 < $2)}')" = "1" ]; then
+            FAILED_CHECKS="${FAILED_CHECKS}Formatting below threshold (${FORMATTING}% < 50%); "
+          fi
+          
+          # Only fail if there are actual threshold failures
+          if [ -n "$FAILED_CHECKS" ]; then
+            THRESHOLD_FAILURES="$FAILED_CHECKS"
             echo "eval_status=failed" >> $GITHUB_OUTPUT
           fi
           
